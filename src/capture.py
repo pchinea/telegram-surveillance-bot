@@ -1,9 +1,9 @@
 from datetime import datetime
 from io import BytesIO
 from tempfile import NamedTemporaryFile
-from threading import Thread, Lock
+from threading import Thread
 from time import time
-from typing import IO
+from typing import IO, Tuple
 
 import cv2
 from numpy import ndarray
@@ -21,7 +21,6 @@ class CameraDevice:
 
         self.running = False
         self.thread = Thread(target=self.update)
-        self.lock = Lock()
 
     def start(self):
         if not self.running:
@@ -36,13 +35,9 @@ class CameraDevice:
             if self.grabbed and self.with_timestamp:
                 self.add_timestamp(self.frame)
             self.frame_count += 1
-            if self.lock.locked():
-                self.lock.release()
 
-    def read(self, blocking=False) -> ndarray:
-        if blocking:
-            self.lock.acquire()
-        return self.frame
+    def read(self) -> Tuple[int, ndarray]:
+        return self.frame_count, self.frame
 
     def stop(self):
         self.running = False
@@ -73,17 +68,22 @@ class Camera:
         self.camera.stop()
 
     def get_photo(self) -> IO:
-        _, im_buf_arr = cv2.imencode(".jpg", self.camera.read())
+        _, im_buf_arr = cv2.imencode(".jpg", self.camera.read()[1])
         return BytesIO(im_buf_arr)
 
     def get_video(self, seconds=5) -> IO:
         f = NamedTemporaryFile(suffix='.mp4')
         four_cc = cv2.VideoWriter_fourcc(*'avc1')
-        out = cv2.VideoWriter(f.name, four_cc, self.camera.fps, (640, 480))
+        fps = self.camera.fps
+        out = cv2.VideoWriter(f.name, four_cc, fps, (640, 480))
+        n_frames = fps * seconds
 
-        stop_time = time() + seconds
-        while time() < stop_time:
-            out.write(self.camera.read(blocking=True))
+        processed = []
+        while len(processed) < n_frames:
+            frame_id, frame = self.camera.read()
+            if frame_id not in processed:
+                processed.append(frame_id)
+                out.write(frame)
 
         out.release()
         return f
