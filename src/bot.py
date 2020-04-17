@@ -4,9 +4,7 @@ from telegram import Update, ReplyKeyboardMarkup, ChatAction
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
 from capture import Camera
-from decorators import restricted
-from utils import logger
-
+from utils import logger, restricted
 
 authorized_user = os.environ.get('AUTHORIZED_USER')
 
