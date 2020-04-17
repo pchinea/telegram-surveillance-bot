@@ -3,10 +3,10 @@ import os
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
-from src.capture import Camera
-from src.decorators import restricted, send_upload_photo_action, \
+from capture import Camera
+from decorators import restricted, send_upload_photo_action, \
     send_record_video_action
-from src.utils import logger
+from utils import logger
 
 
 authorized_user = os.environ.get('AUTHORIZED_USER')

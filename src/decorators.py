@@ -4,7 +4,7 @@ from typing import Callable, Any
 from telegram import Update, ChatAction
 from telegram.ext import CallbackContext
 
-from src.utils import logger
+from utils import logger
 
 
 def restricted(username: str):
