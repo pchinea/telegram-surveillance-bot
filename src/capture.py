@@ -1,7 +1,7 @@
 from datetime import datetime
 from io import BytesIO
 from tempfile import NamedTemporaryFile
-from threading import Thread
+from threading import Thread, Lock
 from time import time
 from typing import IO, Tuple
 
@@ -14,13 +14,14 @@ class CameraDevice:
         self.with_timestamp = with_timestamp
 
         self.device = cv2.VideoCapture(cam_id)
-        self.grabbed, self.frame = self.device.read()
+        self.frame = self.device.read()[1]
 
         self.frame_count = 0
         self.start_time = 0.0
 
         self.running = False
         self.thread = Thread(target=self.update)
+        self.lock = Lock()
 
     def start(self):
         if not self.running:
@@ -31,13 +32,18 @@ class CameraDevice:
 
     def update(self):
         while self.running:
-            self.grabbed, self.frame = self.device.read()
-            if self.grabbed and self.with_timestamp:
+            frame = self.device.read()[1]
+            if self.with_timestamp:
                 self.add_timestamp(self.frame)
-            self.frame_count += 1
+            with self.lock:
+                self.frame = frame
+                self.frame_count += 1
 
     def read(self) -> Tuple[int, ndarray]:
-        return self.frame_count, self.frame
+        with self.lock:
+            frame_id = self.frame_count
+            frame = self.frame.copy()
+        return frame_id, frame
 
     def stop(self):
         self.running = False
