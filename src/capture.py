@@ -10,9 +10,7 @@ from numpy import ndarray
 
 
 class CameraDevice:
-    def __init__(self, cam_id=0, with_timestamp=True):
-        self.with_timestamp = with_timestamp
-
+    def __init__(self, cam_id=0):
         self.device = cv2.VideoCapture(cam_id)
         self.frame = self.device.read()[1]
 
@@ -33,16 +31,16 @@ class CameraDevice:
     def update(self):
         while self.running:
             frame = self.device.read()[1]
-            if self.with_timestamp:
-                self.add_timestamp(frame)
             with self.lock:
                 self.frame = frame
                 self.frame_count += 1
 
-    def read(self) -> Tuple[int, ndarray]:
+    def read(self, with_timestamp=True) -> Tuple[int, ndarray]:
         with self.lock:
             frame_id = self.frame_count
             frame = self.frame.copy()
+        if with_timestamp:
+            self.add_timestamp(frame)
         return frame_id, frame
 
     def stop(self):
