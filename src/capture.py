@@ -34,7 +34,7 @@ class CameraDevice:
         while self.running:
             frame = self.device.read()[1]
             if self.with_timestamp:
-                self.add_timestamp(self.frame)
+                self.add_timestamp(frame)
             with self.lock:
                 self.frame = frame
                 self.frame_count += 1
