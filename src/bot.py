@@ -1,11 +1,10 @@
 import os
 
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, ChatAction
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
 from capture import Camera
-from decorators import restricted, send_upload_photo_action, \
-    send_record_video_action
+from decorators import restricted
 from utils import logger
 
 
@@ -25,9 +24,14 @@ def start(update: Update, context: CallbackContext) -> None:
 
 
 @restricted(authorized_user)
-@send_upload_photo_action
 def get_photo(update: Update, context: CallbackContext) -> None:
     logger.info('Received "get_photo" command')
+
+    # Upload photo
+    context.bot.send_chat_action(
+        chat_id=update.effective_message.chat_id,
+        action=ChatAction.UPLOAD_PHOTO
+    )
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=cam.get_photo(),
@@ -35,13 +39,20 @@ def get_photo(update: Update, context: CallbackContext) -> None:
 
 
 @restricted(authorized_user)
-@send_record_video_action
 def get_video(update: Update, context: CallbackContext) -> None:
     logger.info('Received "get_video" command')
-    video = cam.get_video()
+
+    # Record vieo
     context.bot.send_chat_action(
         chat_id=update.effective_message.chat_id,
-        action='upload_video'
+        action=ChatAction.RECORD_VIDEO
+    )
+    video = cam.get_video()
+
+    # Upload video
+    context.bot.send_chat_action(
+        chat_id=update.effective_message.chat_id,
+        action=ChatAction.UPLOAD_VIDEO
     )
     context.bot.send_video(
         chat_id=update.effective_chat.id,
