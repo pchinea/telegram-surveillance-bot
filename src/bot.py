@@ -1,7 +1,7 @@
 import os
 
 from telegram import Update, ReplyKeyboardMarkup, ChatAction
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackContext, run_async
 
 from capture import Camera
 from utils import logger, restricted
@@ -12,7 +12,10 @@ authorized_user = os.environ.get('AUTHORIZED_USER')
 @restricted(authorized_user)
 def start(update: Update, context: CallbackContext) -> None:
     logger.info('Received "start" command')
-    custom_keyboard = [['/get_photo', '/get_video']]
+    custom_keyboard = [
+        ['/get_photo', '/get_video'],
+        ['/surveillance_start', '/surveillance_stop']
+    ]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -40,7 +43,7 @@ def get_photo(update: Update, context: CallbackContext) -> None:
 def get_video(update: Update, context: CallbackContext) -> None:
     logger.info('Received "get_video" command')
 
-    # Record vieo
+    # Record video
     context.bot.send_chat_action(
         chat_id=update.effective_message.chat_id,
         action=ChatAction.RECORD_VIDEO
@@ -58,6 +61,19 @@ def get_video(update: Update, context: CallbackContext) -> None:
     )
 
 
+@run_async
+@restricted(authorized_user)
+def surveillance_start(update: Update, context: CallbackContext) -> None:
+    logger.info('Received "surveillance_start" command')
+    cam.surveillance_start()
+
+
+@restricted(authorized_user)
+def surveillance_stop(update: Update, context: CallbackContext) -> None:
+    logger.info('Received "surveillance_stop" command')
+    cam.surveillance_stop()
+
+
 if __name__ == '__main__':
     cam = Camera()
     cam.start()
@@ -68,6 +84,12 @@ if __name__ == '__main__':
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('get_photo', get_photo))
     dispatcher.add_handler(CommandHandler('get_video', get_video))
+    dispatcher.add_handler(
+        CommandHandler('surveillance_start', surveillance_start)
+    )
+    dispatcher.add_handler(
+        CommandHandler('surveillance_stop', surveillance_stop)
+    )
 
     updater.start_polling()
     logger.info('Bot started')
