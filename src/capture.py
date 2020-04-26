@@ -3,7 +3,7 @@ from io import BytesIO
 from tempfile import NamedTemporaryFile
 from threading import Thread, Lock
 from time import time
-from typing import IO, Tuple, Generator, Dict, Any, Optional
+from typing import IO, Tuple, Dict, Any, Optional, List, Iterator
 
 import cv2
 import numpy as np
@@ -97,7 +97,26 @@ class Camera:
         video_writer.release()
         return file
 
-    def motion_detection(self):
+    @staticmethod
+    def _get_motion_contours(frame_1: np.ndarray,
+                             frame_2: np.ndarray) -> List[np.ndarray]:
+        frame_delta = cv2.absdiff(frame_1, frame_2)
+        thresh = cv2.threshold(frame_delta, 5, 255, cv2.THRESH_BINARY)[1]
+
+        kernel = np.ones((40, 40), np.uint8)
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+        return cv2.findContours(
+            thresh.copy(),
+            cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE
+        )[-2]
+
+    @staticmethod
+    def _draw_contours(frame: np.ndarray, contour: np.ndarray):
+        (x, y, width, height) = cv2.boundingRect(contour)
+        cv2.rectangle(frame, (x, y), (x + width, y + height), (0, 255, 0), 1)
+
+    def motion_detection(self) -> Iterator[Tuple[bool, int, np.ndarray]]:
         self._surveillance_mode = True
         previous_frame = None
         last_frame_id = 0
@@ -115,36 +134,21 @@ class Camera:
                 previous_frame = gray
                 continue
 
-            frame_delta = cv2.absdiff(previous_frame, gray)
-            thresh = cv2.threshold(frame_delta, 5, 255, cv2.THRESH_BINARY)[1]
-
-            kernel = np.ones((40, 40), np.uint8)
-            thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-            # thresh = cv2.dilate(thresh, None, iterations=2)
-            contours = cv2.findContours(
-                thresh.copy(),
-                cv2.RETR_EXTERNAL,
-                cv2.CHAIN_APPROX_SIMPLE
-            )[-2]
-
-            previous_frame = gray
+            contours = self._get_motion_contours(previous_frame, gray)
 
             detected = False
-            for c in contours:
-                if cv2.contourArea(c) < 2000:
+            for contour in contours:
+                if cv2.contourArea(contour) < 2000:
                     continue
-
-                (x, y, w, h) = cv2.boundingRect(c)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
+                self._draw_contours(frame, contour)
                 detected = True
 
+            previous_frame = gray
             yield detected, frame_id, frame
 
-    def surveillance_start(
-            self,
-            video_seconds=30,
-            picture_seconds=5
-    ) -> Generator[Dict[str, Any], None, None]:
+    def surveillance_start(self,
+                           video_seconds=30,
+                           picture_seconds=5) -> Iterator[Dict[str, Any]]:
         status = Camera.STATUS_IDLE
         fps = self._camera.fps
         processed = []
