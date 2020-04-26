@@ -3,7 +3,7 @@ from io import BytesIO
 from tempfile import NamedTemporaryFile
 from threading import Thread, Lock
 from time import time
-from typing import IO, Tuple, Generator, Dict, Any
+from typing import IO, Tuple, Generator, Dict, Any, Optional
 
 import cv2
 import numpy as np
@@ -13,6 +13,7 @@ class CameraDevice:
     def __init__(self, cam_id=0):
         self.device = cv2.VideoCapture(cam_id)
         self.frame = self.device.read()[1]
+        self.height, self.width, _ = self.frame.shape
 
         self.frame_count = 0
         self.start_time = 0.0
@@ -51,6 +52,10 @@ class CameraDevice:
     def fps(self):
         return self.frame_count / (time() - self.start_time)
 
+    @property
+    def frame_size(self):
+        return self.width, self.height
+
     @staticmethod
     def add_timestamp(frame: np.ndarray):
         dt = str(datetime.now())[:-7]
@@ -62,6 +67,9 @@ class CameraDevice:
 
 
 class Camera:
+    STATUS_IDLE = 'idle'
+    STATUS_MOTION_DETECTED = 'motion_detected'
+
     def __init__(self, cam_id=0):
         self.camera = CameraDevice(cam_id)
         self.surveillance_mode = False
@@ -78,9 +86,9 @@ class Camera:
 
     def get_video(self, seconds=5) -> IO:
         f = NamedTemporaryFile(suffix='.mp4')
-        four_cc = cv2.VideoWriter_fourcc(*'avc1')
+        four_cc = cv2.VideoWriter_fourcc(*'mp4v')
         fps = self.camera.fps
-        out = cv2.VideoWriter(f.name, four_cc, fps, (640, 480))
+        out = cv2.VideoWriter(f.name, four_cc, fps, self.camera.frame_size)
         n_frames = fps * seconds
 
         processed = []
@@ -138,36 +146,54 @@ class Camera:
 
     def surveillance_start(
             self,
-            seconds=30
+            video_seconds=30,
+            picture_seconds=5
     ) -> Generator[Dict[str, Any], None, None]:
-        status = 'idle'
+        status = Camera.STATUS_IDLE
+        fps = self.camera.fps
+        processed = []
+        n_frames = 0
+        file: Optional[IO] = None
+        video_writer: Optional[cv2.VideoWriter] = None
+
         for detected, frame_id, frame in self.motion_detection():
-            if status == 'idle':
+            if status == Camera.STATUS_IDLE:
                 if detected:
                     yield {'detected': True}
-                    status = 'motion_detected'
-                    f = NamedTemporaryFile(suffix='.mp4')
-                    four_cc = cv2.VideoWriter_fourcc(*'avc1')
-                    fps = self.camera.fps
-                    out = cv2.VideoWriter(f.name, four_cc, fps, (640, 480))
-                    n_frames = fps * seconds
+                    status = Camera.STATUS_MOTION_DETECTED
+                    file, video_writer = self._create_video_file('on_motion')
+                    n_frames = fps * video_seconds
                     processed = [frame_id]
-                    out.write(frame)
-            if status == 'motion_detected':
-                if not (len(processed) % int(fps * 5)):
+                    video_writer.write(frame)
+            if status == Camera.STATUS_MOTION_DETECTED:
+                if not len(processed) % int(fps * picture_seconds):
                     yield {
                         'photo': BytesIO(cv2.imencode(".jpg", frame)[1]),
-                        'id': (len(processed) // int(fps * 5)),
-                        'total': seconds // 5
+                        'id': (len(processed) // int(fps * picture_seconds)),
+                        'total': video_seconds // picture_seconds
                     }
                 if len(processed) < n_frames:
                     if frame_id not in processed:
                         processed.append(frame_id)
-                        out.write(frame)
+                        video_writer.write(frame)
                 else:
-                    out.release()
-                    yield {'video': f}
-                    status = 'idle'
+                    video_writer.release()
+                    yield {'video': file}
+                    status = Camera.STATUS_IDLE
 
     def surveillance_stop(self):
         self.surveillance_mode = False
+
+    def _create_video_file(self, event_type: str) -> Tuple[IO, cv2.VideoWriter]:
+        now_str = str(datetime.now())[:-7]
+        table = str.maketrans(': ', '-_')
+        prefix = now_str.translate(table) + f'_{event_type}_'
+
+        file = NamedTemporaryFile(prefix=prefix, suffix='.mp4')
+        writer = cv2.VideoWriter(
+            file.name,
+            cv2.VideoWriter_fourcc(*'mp4v'),
+            self.camera.fps,
+            self.camera.frame_size
+        )
+        return file, writer
