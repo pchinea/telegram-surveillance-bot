@@ -81,25 +81,21 @@ class Camera:
         self.camera.stop()
 
     def get_photo(self) -> IO:
-        _, im_buf_arr = cv2.imencode(".jpg", self.camera.read()[1])
-        return BytesIO(im_buf_arr)
+        return BytesIO(cv2.imencode(".jpg", self.camera.read()[1])[1])
 
     def get_video(self, seconds=5) -> IO:
-        f = NamedTemporaryFile(suffix='.mp4')
-        four_cc = cv2.VideoWriter_fourcc(*'mp4v')
-        fps = self.camera.fps
-        out = cv2.VideoWriter(f.name, four_cc, fps, self.camera.frame_size)
-        n_frames = fps * seconds
+        file, video_writer = self._create_video_file('on_demand')
+        n_frames = self.camera.fps * seconds
 
         processed = []
         while len(processed) < n_frames:
             frame_id, frame = self.camera.read()
             if frame_id not in processed:
                 processed.append(frame_id)
-                out.write(frame)
+                video_writer.write(frame)
 
-        out.release()
-        return f
+        video_writer.release()
+        return file
 
     def motion_detection(self):
         self.surveillance_mode = True
