@@ -65,7 +65,37 @@ def get_video(update: Update, context: CallbackContext) -> None:
 @restricted(authorized_user)
 def surveillance_start(update: Update, context: CallbackContext) -> None:
     logger.info('Received "surveillance_start" command')
-    cam.surveillance_start()
+    for data in cam.surveillance_start():
+        if 'detected' in data:
+            update.message.reply_text('Motion detected!')
+            context.bot.send_chat_action(
+                chat_id=update.effective_message.chat_id,
+                action=ChatAction.RECORD_VIDEO
+            )
+        if 'photo' in data:
+            context.bot.send_chat_action(
+                chat_id=update.effective_message.chat_id,
+                action=ChatAction.UPLOAD_PHOTO
+            )
+            context.bot.send_photo(
+                chat_id=update.effective_chat.id,
+                photo=data['photo'],
+                caption=f'Capture {data["id"]}/{data["total"]}'
+            )
+            context.bot.send_chat_action(
+                chat_id=update.effective_message.chat_id,
+                action=ChatAction.RECORD_VIDEO
+            )
+        if 'video' in data:
+            context.bot.send_chat_action(
+                chat_id=update.effective_message.chat_id,
+                action=ChatAction.UPLOAD_VIDEO
+            )
+            context.bot.send_video(
+                chat_id=update.effective_chat.id,
+                video=data['video']
+            )
+    logger.info('Surveillance stop')
 
 
 @restricted(authorized_user)

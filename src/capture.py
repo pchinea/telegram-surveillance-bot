@@ -3,7 +3,7 @@ from io import BytesIO
 from tempfile import NamedTemporaryFile
 from threading import Thread, Lock
 from time import time
-from typing import IO, Tuple
+from typing import IO, Tuple, Generator, Dict, Any
 
 import cv2
 import numpy as np
@@ -136,11 +136,38 @@ class Camera:
 
             yield detected, frame_id, frame
 
-    def surveillance_start(self):
+    def surveillance_start(
+            self,
+            seconds=30
+    ) -> Generator[Dict[str, Any], None, None]:
+        status = 'idle'
         for detected, frame_id, frame in self.motion_detection():
-            cv2.imshow('frame', frame)
-            cv2.waitKey(1)
+            if status == 'idle':
+                if detected:
+                    yield {'detected': True}
+                    status = 'motion_detected'
+                    f = NamedTemporaryFile(suffix='.mp4')
+                    four_cc = cv2.VideoWriter_fourcc(*'avc1')
+                    fps = self.camera.fps
+                    out = cv2.VideoWriter(f.name, four_cc, fps, (640, 480))
+                    n_frames = fps * seconds
+                    processed = [frame_id]
+                    out.write(frame)
+            if status == 'motion_detected':
+                if not (len(processed) % int(fps * 5)):
+                    yield {
+                        'photo': BytesIO(cv2.imencode(".jpg", frame)[1]),
+                        'id': (len(processed) // int(fps * 5)),
+                        'total': seconds // 5
+                    }
+                if len(processed) < n_frames:
+                    if frame_id not in processed:
+                        processed.append(frame_id)
+                        out.write(frame)
+                else:
+                    out.release()
+                    yield {'video': f}
+                    status = 'idle'
 
     def surveillance_stop(self):
         self.surveillance_mode = False
-        cv2.destroyAllWindows()
