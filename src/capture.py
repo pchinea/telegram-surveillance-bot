@@ -182,7 +182,8 @@ class Camera:
     def surveillance_stop(self):
         self._surveillance_mode = False
 
-    def _create_video_file(self, event_type: str) -> Tuple[IO, cv2.VideoWriter]:
+    def _create_video_file(self,
+                           event_type: str) -> Tuple[IO, cv2.VideoWriter]:
         now_str = str(datetime.now())[:-7]
         table = str.maketrans(': ', '-_')
         prefix = now_str.translate(table) + f'_{event_type}_'
