@@ -105,11 +105,9 @@ class Camera:
 
         kernel = np.ones((40, 40), np.uint8)
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-        return cv2.findContours(
-            thresh.copy(),
-            cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE
-        )[-2]
+        return cv2.findContours(thresh.copy(),
+                                cv2.RETR_EXTERNAL,
+                                cv2.CHAIN_APPROX_SIMPLE)[-2]
 
     @staticmethod
     def _draw_contours(frame: np.ndarray, contour: np.ndarray):
@@ -190,10 +188,8 @@ class Camera:
         prefix = now_str.translate(table) + f'_{event_type}_'
 
         file = NamedTemporaryFile(prefix=prefix, suffix='.mp4')
-        writer = cv2.VideoWriter(
-            file.name,
-            cv2.VideoWriter_fourcc(*'mp4v'),
-            self._camera.fps,
-            self._camera.frame_size
-        )
+        writer = cv2.VideoWriter(file.name,
+                                 cv2.VideoWriter_fourcc(*'mp4v'),
+                                 self._camera.fps,
+                                 self._camera.frame_size)
         return file, writer
