@@ -13,7 +13,6 @@ class CameraDevice:
     def __init__(self, cam_id=0):
         self._device = cv2.VideoCapture(cam_id)
         self._frame = self._device.read()[1]
-        self._height, self._width, _ = self._frame.shape
 
         self._frame_count = 0
         self._start_time = 0.0
@@ -54,7 +53,8 @@ class CameraDevice:
 
     @property
     def frame_size(self):
-        return self._width, self._height
+        height, width, _ = self._frame.shape
+        return width, height
 
     @staticmethod
     def _add_timestamp(frame: np.ndarray):
