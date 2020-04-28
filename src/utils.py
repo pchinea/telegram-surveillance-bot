@@ -22,8 +22,9 @@ def restricted(username: str):
         def command_func(update: Update, context: CallbackContext) -> Any:
             if update.effective_chat.username != username:
                 logger.warning(
-                    f'Unauthorized call to "{func.__name__}" command '
-                    f'by @{update.effective_chat.username}'
+                    'Unauthorized call to "%s" command by @%s',
+                    func.__name__,
+                    update.effective_chat.username
                 )
                 update.message.reply_text("Unauthorized")
                 return None
