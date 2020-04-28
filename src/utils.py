@@ -15,7 +15,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-logger = logging.getLogger('TestSurveillanceBot')
 
 
 # Decorators
@@ -23,12 +22,18 @@ def restricted(username: str):
     """Decorator for restricting handler execution to given username
 
     Args:
-        username (str): Authorized username.
-    """
+        username: Authorized username.
 
-    def decorator(func: Callable[[Update, CallbackContext], Any]):
+    Returns:
+        Decorated handler.
+    """
+    logger = logging.getLogger(__name__)
+
+    def decorator(func: Callable[[object, Update, CallbackContext], Any]):
         @wraps(func)
-        def command_func(update: Update, context: CallbackContext) -> Any:
+        def command_func(obj: object,
+                         update: Update,
+                         context: CallbackContext) -> Any:
             if update.effective_chat.username != username:
                 logger.warning(
                     'Unauthorized call to "%s" command by @%s',
@@ -37,7 +42,7 @@ def restricted(username: str):
                 )
                 update.message.reply_text("Unauthorized")
                 return None
-            return func(update, context)
+            return func(obj, update, context)
         return command_func
 
     return decorator
