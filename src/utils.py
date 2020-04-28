@@ -1,3 +1,8 @@
+""" Utils module for Surveillance Telegram Bot.
+
+
+This module contains helpers functions, decorators and configuration.
+"""
 import logging
 from functools import wraps
 from typing import Callable, Any
@@ -15,7 +20,11 @@ logger = logging.getLogger('TestSurveillanceBot')
 
 # Decorators
 def restricted(username: str):
-    """ Restricts function to given username """
+    """Decorator for restricting handler execution to given username
+
+    Args:
+        username (str): Authorized username.
+    """
 
     def decorator(func: Callable[[Update, CallbackContext], Any]):
         @wraps(func)
