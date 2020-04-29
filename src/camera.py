@@ -1,3 +1,9 @@
+"""Module for camera related functionality
+
+This file implements both camera management and a top layer for related
+operations such as motion detection or output file generation. All
+camera and image operations are performed using OpenCV.
+"""
 from datetime import datetime
 from io import BytesIO
 from tempfile import NamedTemporaryFile
@@ -10,6 +16,14 @@ import numpy as np
 
 
 class CameraDevice:
+    """Class for camera hardware handling.
+
+    This class handles camera hardware using threading to perform reading
+    operations on the camera.
+
+    Args:
+        cam_id: ID of the video capturing device to open.
+    """
     def __init__(self, cam_id=0):
         self._device = cv2.VideoCapture(cam_id)
         self._frame = self._device.read()[1]
@@ -18,17 +32,24 @@ class CameraDevice:
         self._start_time = 0.0
 
         self._running = False
-        self._thread = Thread(target=self.update)
+        self._thread = Thread(target=self._update)
         self._lock = Lock()
 
     def start(self):
+        """Starts frame grabbing process."""
         if not self._running:
             self._frame_count = 0
             self._start_time = time()
             self._running = True
             self._thread.start()
 
-    def update(self):
+    def _update(self):
+        """Updates data with latest frame available.
+
+        This functions is executed in a separated thread because frame
+        reading is a blocking operation. Every frame grabbed is stored
+        temporarily.
+        """
         while self._running:
             frame = self._device.read()[1]
             with self._lock:
@@ -36,6 +57,16 @@ class CameraDevice:
                 self._frame_count += 1
 
     def read(self, with_timestamp=True) -> Tuple[int, np.ndarray]:
+        """Returns the latest stored frame.
+
+        Args:
+            with_timestamp: If True a timestamp is printed on the returned
+                frame.
+
+        Returns:
+            A tuple with the unique identifier of the frame and the frame
+                itself.
+        """
         with self._lock:
             frame_id = self._frame_count
             frame = self._frame.copy()
@@ -44,20 +75,24 @@ class CameraDevice:
         return frame_id, frame
 
     def stop(self):
+        """Stops frame grabbing process."""
         self._running = False
         self._thread.join()
 
     @property
-    def fps(self):
+    def fps(self) -> float:
+        """Current FPS(Frames per second) value."""
         return self._frame_count / (time() - self._start_time)
 
     @property
-    def frame_size(self):
+    def frame_size(self) -> Tuple[int, int]:
+        """Tuple with frame width and height"""
         height, width, _ = self._frame.shape
         return width, height
 
     @staticmethod
     def _add_timestamp(frame: np.ndarray):
+        """Prints timestamp on the given frame."""
         now = str(datetime.now())[:-7]
         org = (1, frame.shape[0] - 3)
         font = cv2.FONT_HERSHEY_PLAIN
