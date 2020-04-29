@@ -1,7 +1,7 @@
 import logging
 
 from bot import Bot
-from capture import Camera
+from camera import Camera
 
 
 def main():

@@ -4,7 +4,7 @@ import os
 from telegram import Update, ReplyKeyboardMarkup, ChatAction
 from telegram.ext import Updater, CommandHandler, CallbackContext, run_async
 
-from capture import Camera
+from camera import Camera
 from utils import restricted
 
 
@@ -32,7 +32,7 @@ class Bot:
         context.bot.send_chat_action(chat_id=update.effective_chat.id,
                                      action=ChatAction.UPLOAD_PHOTO)
         context.bot.send_photo(chat_id=update.effective_chat.id,
-                               photo=self.cam.get_photo())
+                               photo=self.camera.get_photo())
 
     @restricted(authorized_user)
     def get_video(self, update: Update, context: CallbackContext) -> None:
@@ -41,7 +41,7 @@ class Bot:
         # Record video
         context.bot.send_chat_action(chat_id=update.effective_chat.id,
                                      action=ChatAction.RECORD_VIDEO)
-        video = self.cam.get_video()
+        video = self.camera.get_video()
 
         # Upload video
         context.bot.send_chat_action(chat_id=update.effective_chat.id,
@@ -55,7 +55,7 @@ class Bot:
                            update: Update,
                            context: CallbackContext) -> None:
         self.logger.info('Received "surveillance_start" command')
-        for data in self.cam.surveillance_start():
+        for data in self.camera.surveillance_start():
             if 'detected' in data:
                 update.message.reply_text('Motion detected!')
                 context.bot.send_chat_action(chat_id=update.effective_chat.id,
@@ -81,10 +81,10 @@ class Bot:
                           update: Update,
                           context: CallbackContext) -> None:
         self.logger.info('Received "surveillance_stop" command')
-        self.cam.surveillance_stop()
+        self.camera.surveillance_stop()
 
-    def __init__(self, cam: Camera):
-        self.cam = cam
+    def __init__(self, camera: Camera):
+        self.camera = camera
         self.logger = logging.getLogger(__name__)
 
         token = os.environ.get('BOT_API_TOKEN')
