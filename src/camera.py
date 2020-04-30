@@ -102,8 +102,8 @@ class CameraDevice:
 
 
 class Camera:
-    STATUS_IDLE = 'idle'
-    STATUS_MOTION_DETECTED = 'motion_detected'
+    STATE_IDLE = 'idle'
+    STATE_MOTION_DETECTED = 'motion_detected'
 
     def __init__(self, cam_id=0):
         self._camera = CameraDevice(cam_id)
@@ -182,7 +182,7 @@ class Camera:
     def surveillance_start(self,
                            video_seconds=30,
                            picture_seconds=5) -> Iterator[Dict[str, Any]]:
-        status = Camera.STATUS_IDLE
+        status = Camera.STATE_IDLE
         fps = self._camera.fps
         processed = []
         n_frames = 0
@@ -190,15 +190,15 @@ class Camera:
         video_writer: Optional[cv2.VideoWriter] = None
 
         for detected, frame_id, frame in self.motion_detection():
-            if status == Camera.STATUS_IDLE:
+            if status == Camera.STATE_IDLE:
                 if detected:
                     yield {'detected': True}
-                    status = Camera.STATUS_MOTION_DETECTED
+                    status = Camera.STATE_MOTION_DETECTED
                     file, video_writer = self._create_video_file('on_motion')
                     n_frames = fps * video_seconds
                     processed = [frame_id]
                     video_writer.write(frame)
-            if status == Camera.STATUS_MOTION_DETECTED:
+            if status == Camera.STATE_MOTION_DETECTED:
                 if not len(processed) % int(fps * picture_seconds):
                     yield {
                         'photo': BytesIO(cv2.imencode(".jpg", frame)[1]),
@@ -212,7 +212,7 @@ class Camera:
                 else:
                     video_writer.release()
                     yield {'video': file}
-                    status = Camera.STATUS_IDLE
+                    status = Camera.STATE_IDLE
 
     def surveillance_stop(self):
         self._surveillance_mode = False
