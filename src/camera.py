@@ -1,4 +1,5 @@
-"""Module for camera related functionality
+"""
+Module for camera related functionality
 
 This file implements both camera management and a top layer for related
 operations such as motion detection or output file generation. All
@@ -16,7 +17,8 @@ import numpy as np
 
 
 class CameraDevice:
-    """Class for camera hardware handling.
+    """
+    Class for camera hardware handling.
 
     This class handles camera hardware using threading to perform reading
     operations on the camera.
@@ -44,7 +46,8 @@ class CameraDevice:
             self._thread.start()
 
     def _update(self):
-        """Updates data with latest frame available.
+        """
+        Updates data with latest frame available.
 
         This functions is executed in a separated thread because frame
         reading is a blocking operation. Every frame grabbed is stored
@@ -57,7 +60,8 @@ class CameraDevice:
                 self._frame_count += 1
 
     def read(self, with_timestamp=True) -> Tuple[int, np.ndarray]:
-        """Returns the latest stored frame.
+        """
+        Returns the latest stored frame.
 
         Args:
             with_timestamp: If True a timestamp is printed on the returned
@@ -65,7 +69,7 @@ class CameraDevice:
 
         Returns:
             A tuple with the unique identifier of the frame and the frame
-                itself.
+            itself.
         """
         with self._lock:
             frame_id = self._frame_count
@@ -81,12 +85,26 @@ class CameraDevice:
 
     @property
     def fps(self) -> float:
-        """Current FPS(Frames per second) value."""
+        """
+        Calculates actual frames per seconds value.
+
+        Note:
+            This is necessary because FPS value returned by OpenCV could be
+            not accurate.
+
+        Returns:
+            Current FPS value.
+        """
         return self._frame_count / (time() - self._start_time)
 
     @property
     def frame_size(self) -> Tuple[int, int]:
-        """Tuple with frame width and height"""
+        """
+        Gets the frame resolution based in the last grabbed frame.
+
+        Returns:
+            Tuple with frame width and height.
+        """
         height, width, _ = self._frame.shape
         return width, height
 
@@ -102,23 +120,57 @@ class CameraDevice:
 
 
 class Camera:
+    """
+    Top level class for camera operations performing.
+
+    This class provide high level operations returning images and videos in
+    a file object.
+
+    Args:
+        cam_id: ID of the video capturing device to open.
+    """
+
     STATE_IDLE = 'idle'
+    """Awaiting for motion detection."""
+
     STATE_MOTION_DETECTED = 'motion_detected'
+    """After motion have been detected."""
 
     def __init__(self, cam_id=0):
         self._camera = CameraDevice(cam_id)
         self._surveillance_mode = False
 
     def start(self):
+        """
+        Starts camera device.
+
+        Note:
+            The camera can only be started once during the instance lifecycle.
+        """
         self._camera.start()
 
     def stop(self):
+        """Stops camera devices."""
         self._camera.stop()
 
     def get_photo(self) -> IO:
+        """
+        Takes a single shot.
+
+        Returns:
+            File object with the photo taken.
+        """
         return BytesIO(cv2.imencode(".jpg", self._camera.read()[1])[1])
 
     def get_video(self, seconds=5) -> IO:
+        """Takes a video.
+
+        Args:
+            seconds: Video duration.
+
+        Returns:
+            File object with the video taken.
+        """
         file, video_writer = self._create_video_file('on_demand')
         n_frames = self._camera.fps * seconds
 
@@ -135,6 +187,19 @@ class Camera:
     @staticmethod
     def _get_motion_contours(frame_1: np.ndarray,
                              frame_2: np.ndarray) -> List[np.ndarray]:
+        """
+        Detects motion and find the contours for every motion detected.
+
+        This method receives two consecutive frames and detects changes
+        between them.
+
+        Args:
+            frame_1: First of the two consecutive frames.
+            frame_2: Second of the two consecutive frames.
+
+        Returns:
+            A list with the contours found.
+        """
         frame_delta = cv2.absdiff(frame_1, frame_2)
         thresh = cv2.threshold(frame_delta, 5, 255, cv2.THRESH_BINARY)[1]
 
@@ -146,10 +211,33 @@ class Camera:
 
     @staticmethod
     def _draw_contours(frame: np.ndarray, contour: np.ndarray):
+        """
+        Draws a rectangle on the frame that marks a contour.
+
+        This method gets a bounding rectangle for a given contour and
+        draws this rectangle on the frame.
+
+        Args:
+            frame: Frame on which to draw the rectangles.
+            contour: Contour to be marked.
+        """
         (x, y, width, height) = cv2.boundingRect(contour)
         cv2.rectangle(frame, (x, y), (x + width, y + height), (0, 255, 0), 1)
 
     def motion_detection(self) -> Iterator[Tuple[bool, int, np.ndarray]]:
+        """
+        Executes motion detection operation during surveillance mode.
+
+        This generator grabs frames continuously and search for motion
+        yielding every frame grabbed even motion is detected or not. In
+        frames with motion detected the contour is drawn on it.
+
+        Yields:
+            A tuple with three values.
+                * True if motion is detected or False if not.
+                * The unique identifier of the frame.
+                * The frame itself.
+        """
         self._surveillance_mode = True
         previous_frame = None
         last_frame_id = 0
@@ -182,6 +270,24 @@ class Camera:
     def surveillance_start(self,
                            video_seconds=30,
                            picture_seconds=5) -> Iterator[Dict[str, Any]]:
+        """
+        Starts surveillance mode, waiting for motion detection.
+
+        In this mode it waits until motion is detected, when this happens a
+        message is yielded and it starts to record a video, yielding single
+        photos during this process until video is yielded. After that it
+        goes back to the initial state.
+
+        Args:
+            video_seconds: Video duration.
+            picture_seconds: Time elapsed between pictures.
+
+        Yields:
+            A dict with three possible configurations
+                * ``{'detected': True}``
+                * ``{'video': <IO>}``
+                * ``{'photo': <IO>, 'id': <int>, 'total': <int>}``
+        """
         status = Camera.STATE_IDLE
         fps = self._camera.fps
         processed = []
@@ -215,10 +321,21 @@ class Camera:
                     status = Camera.STATE_IDLE
 
     def surveillance_stop(self):
+        """Stops surveillance mode."""
         self._surveillance_mode = False
 
     def _create_video_file(self,
                            event_type: str) -> Tuple[IO, cv2.VideoWriter]:
+        """
+        Initializes a temporary video file and a video writer.
+
+
+        Args:
+            event_type: Event type string for filename generation.
+
+        Returns:
+            A tuple with the file object and the OpenCV video writer object.
+        """
         now_str = str(datetime.now())[:-7]
         table = str.maketrans(': ', '-_')
         prefix = now_str.translate(table) + f'_{event_type}_'

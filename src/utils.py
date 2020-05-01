@@ -1,4 +1,5 @@
-""" Utils module for Surveillance Telegram Bot.
+"""
+Utils module for Surveillance Telegram Bot.
 
 
 This module contains helpers functions, decorators and configuration.
@@ -19,7 +20,8 @@ logging.basicConfig(
 
 # Decorators
 def restricted(username: str):
-    """Decorator for restricting handler execution to given username
+    """
+    Decorator for restricting handler execution to given username
 
     Args:
         username: Authorized username.
