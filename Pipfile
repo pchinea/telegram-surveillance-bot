@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
 
 [packages]
 python-telegram-bot = "==12.6.1"
