@@ -15,8 +15,15 @@ class Bot:
     def start(self, update: Update, context: CallbackContext) -> None:
         self.logger.info('Received "start" command')
         custom_keyboard = [
-            ['/get_photo', '/get_video'],
-            ['/surveillance_start', '/surveillance_stop']
+            [
+                '/get_photo',
+                '/get_video'
+            ],
+            [
+                '/surveillance_start',
+                '/surveillance_stop',
+                '/surveillance_status'
+            ]
         ]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard,
                                            resize_keyboard=True)
@@ -100,6 +107,14 @@ class Bot:
         # Stop surveillance.
         self.camera.surveillance_stop()
 
+    @restricted(authorized_user)
+    def surveillance_status(self, update: Update, _: CallbackContext) -> None:
+        self.logger.info('Received "surveillance_status" command')
+        if self.camera.is_surveillance_active:
+            update.message.reply_text("Surveillance is active")
+        else:
+            update.message.reply_text("Surveillance is not active")
+
     def __init__(self, camera: Camera):
         self.camera = camera
         self.logger = logging.getLogger(__name__)
@@ -115,6 +130,8 @@ class Bot:
                                               self.surveillance_start))
         dispatcher.add_handler(CommandHandler('surveillance_stop',
                                               self.surveillance_stop))
+        dispatcher.add_handler(CommandHandler('surveillance_status',
+                                              self.surveillance_status))
 
     def get_updater(self):
         return self.updater
