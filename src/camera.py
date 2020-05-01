@@ -324,6 +324,11 @@ class Camera:
         """Stops surveillance mode."""
         self._surveillance_mode = False
 
+    @property
+    def is_surveillance_active(self) -> bool:
+        """Return if surveillance mode is active or not."""
+        return self._surveillance_mode
+
     def _create_video_file(self,
                            event_type: str) -> Tuple[IO, cv2.VideoWriter]:
         """

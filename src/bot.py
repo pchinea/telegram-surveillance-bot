@@ -55,6 +55,15 @@ class Bot:
                            update: Update,
                            context: CallbackContext) -> None:
         self.logger.info('Received "surveillance_start" command')
+
+        # Check if surveillance is already started.
+        if self.camera.is_surveillance_active:
+            update.message.reply_text('Error! Surveillance is already started')
+            self.logger.warning("Surveillance already started")
+            return
+
+        # Starts surveillance.
+        update.message.reply_text("Surveillance started")
         for data in self.camera.surveillance_start():
             if 'detected' in data:
                 update.message.reply_text('Motion detected!')
@@ -74,13 +83,21 @@ class Bot:
                                              action=ChatAction.UPLOAD_VIDEO)
                 context.bot.send_video(chat_id=update.effective_chat.id,
                                        video=data['video'])
+
+        update.message.reply_text("Surveillance stopped")
         self.logger.info('Surveillance stop')
 
     @restricted(authorized_user)
-    def surveillance_stop(self,
-                          update: Update,
-                          context: CallbackContext) -> None:
+    def surveillance_stop(self, update: Update, _: CallbackContext) -> None:
         self.logger.info('Received "surveillance_stop" command')
+
+        # Checks if surveillance is not running.
+        if not self.camera.is_surveillance_active:
+            update.message.reply_text("Error! Surveillance is not started")
+            self.logger.warning("Surveillance is not started")
+            return
+
+        # Stop surveillance.
         self.camera.surveillance_stop()
 
     def __init__(self, camera: Camera):
