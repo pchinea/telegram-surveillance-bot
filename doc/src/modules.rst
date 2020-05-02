@@ -7,4 +7,3 @@ Modules
    modules/bot
    modules/camera
    modules/main
-   modules/utils
