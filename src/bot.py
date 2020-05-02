@@ -1,8 +1,7 @@
 import inspect
 import logging
-import os
 from functools import wraps
-from typing import Callable
+from typing import Callable, Union
 
 from telegram import Update, ReplyKeyboardMarkup, ChatAction
 from telegram.ext import Updater, CommandHandler, CallbackContext, run_async
@@ -11,23 +10,17 @@ from camera import Camera
 
 HandlerType = Callable[[Update, CallbackContext], None]
 
-# Logging config
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-
 
 class Bot:
-    def __init__(self):
+    def __init__(self, token: str, username: str,
+                 log_level: Union[int, str, None] = None):
         self.camera = Camera()
-        self.camera.start()
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(os.environ.get('LOG_LEVEL', 'WARNING').upper())
-        self.authorized_user = os.environ.get('AUTHORIZED_USER')
+        if log_level:
+            self.logger.setLevel(log_level)
+        self.authorized_user = username
 
-        token = os.environ.get('BOT_API_TOKEN')
-        self.updater = Updater(token=token, use_context=True,
-                               user_sig_handler=self.signal_handler)
+        self.updater = Updater(token=token, use_context=True)
 
         # Registers commands in the dispatcher
         for name, method in inspect.getmembers(self, inspect.ismethod):
@@ -55,12 +48,13 @@ class Bot:
         # Adds handler to the dispatcher
         dispatcher.add_handler(CommandHandler(command, command_func))
 
-    def start_bot(self):
+    def start(self):
+        self.camera.start()
         self.updater.start_polling()
         self.logger.info("Surveillance Telegram Bot started")
+
         self.updater.idle()
 
-    def signal_handler(self, _, __):
         self.camera.stop()
         self.logger.info("Surveillance Telegram Bot stopped")
 
