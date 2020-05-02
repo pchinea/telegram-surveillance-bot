@@ -1,7 +1,7 @@
 """
-Module for camera related functionality
+Module for camera related functionality.
 
-This file implements both camera management and a top layer for related
+This module implements both camera management and a top layer for related
 operations such as motion detection or output file generation. All
 camera and image operations are performed using OpenCV.
 """
