@@ -11,6 +11,35 @@ from utils import restricted
 class Bot:
     authorized_user = os.environ.get('AUTHORIZED_USER')
 
+    def __init__(self):
+        self.camera = Camera()
+        self.camera.start()
+        self.logger = logging.getLogger(__name__)
+
+        token = os.environ.get('BOT_API_TOKEN')
+        self.updater = Updater(token=token, use_context=True,
+                               user_sig_handler=self.signal_handler)
+        dispatcher = self.updater.dispatcher
+
+        dispatcher.add_handler(CommandHandler('start', self.start))
+        dispatcher.add_handler(CommandHandler('get_photo', self.get_photo))
+        dispatcher.add_handler(CommandHandler('get_video', self.get_video))
+        dispatcher.add_handler(CommandHandler('surveillance_start',
+                                              self.surveillance_start))
+        dispatcher.add_handler(CommandHandler('surveillance_stop',
+                                              self.surveillance_stop))
+        dispatcher.add_handler(CommandHandler('surveillance_status',
+                                              self.surveillance_status))
+
+    def start_bot(self):
+        self.updater.start_polling()
+        self.logger.info("Surveillance Telegram Bot started")
+        self.updater.idle()
+
+    def signal_handler(self, _, __):
+        self.camera.stop()
+        self.logger.info("Surveillance Telegram Bot stopped")
+
     @restricted(authorized_user)
     def start(self, update: Update, context: CallbackContext) -> None:
         self.logger.info('Received "start" command')
@@ -114,24 +143,3 @@ class Bot:
             update.message.reply_text("Surveillance is active")
         else:
             update.message.reply_text("Surveillance is not active")
-
-    def __init__(self, camera: Camera):
-        self.camera = camera
-        self.logger = logging.getLogger(__name__)
-
-        token = os.environ.get('BOT_API_TOKEN')
-        self.updater = Updater(token=token, use_context=True)
-        dispatcher = self.updater.dispatcher
-
-        dispatcher.add_handler(CommandHandler('start', self.start))
-        dispatcher.add_handler(CommandHandler('get_photo', self.get_photo))
-        dispatcher.add_handler(CommandHandler('get_video', self.get_video))
-        dispatcher.add_handler(CommandHandler('surveillance_start',
-                                              self.surveillance_start))
-        dispatcher.add_handler(CommandHandler('surveillance_stop',
-                                              self.surveillance_stop))
-        dispatcher.add_handler(CommandHandler('surveillance_status',
-                                              self.surveillance_status))
-
-    def get_updater(self):
-        return self.updater
