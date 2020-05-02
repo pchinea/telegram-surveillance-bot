@@ -9,7 +9,7 @@ sphinx = "*"
 sphinx-rtd-theme = "*"
 
 [packages]
-python-telegram-bot = "==12.6.1"
+python-telegram-bot = "*"
 opencv-python = "*"
 
 [requires]
