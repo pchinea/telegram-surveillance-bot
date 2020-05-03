@@ -185,8 +185,10 @@ class Camera:
         return file
 
     @staticmethod
-    def _get_motion_contours(frame_1: np.ndarray,
-                             frame_2: np.ndarray) -> List[np.ndarray]:
+    def _get_motion_contours(
+            frame_1: np.ndarray,
+            frame_2: np.ndarray
+    ) -> List[np.ndarray]:
         """
         Detects motion and find the contours for every motion detected.
 
@@ -205,9 +207,11 @@ class Camera:
 
         kernel = np.ones((40, 40), np.uint8)
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-        return cv2.findContours(thresh.copy(),
-                                cv2.RETR_EXTERNAL,
-                                cv2.CHAIN_APPROX_SIMPLE)[-2]
+        return cv2.findContours(
+            thresh.copy(),
+            cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE
+        )[-2]
 
     @staticmethod
     def _draw_contours(frame: np.ndarray, contour: np.ndarray):
@@ -267,9 +271,11 @@ class Camera:
             previous_frame = gray
             yield detected, frame_id, frame
 
-    def surveillance_start(self,
-                           video_seconds=30,
-                           picture_seconds=5) -> Iterator[Dict[str, Any]]:
+    def surveillance_start(
+            self,
+            video_seconds=30,
+            picture_seconds=5
+    ) -> Iterator[Dict[str, Any]]:
         """
         Starts surveillance mode, waiting for motion detection.
 
@@ -329,8 +335,10 @@ class Camera:
         """Return if surveillance mode is active or not."""
         return self._surveillance_mode
 
-    def _create_video_file(self,
-                           event_type: str) -> Tuple[IO, cv2.VideoWriter]:
+    def _create_video_file(
+            self,
+            event_type: str
+    ) -> Tuple[IO, cv2.VideoWriter]:
         """
         Initializes a temporary video file and a video writer.
 
@@ -346,8 +354,10 @@ class Camera:
         prefix = now_str.translate(table) + f'_{event_type}_'
 
         file = NamedTemporaryFile(prefix=prefix, suffix='.mp4')
-        writer = cv2.VideoWriter(file.name,
-                                 cv2.VideoWriter_fourcc(*'mp4v'),
-                                 self._camera.fps,
-                                 self._camera.frame_size)
+        writer = cv2.VideoWriter(
+            file.name,
+            cv2.VideoWriter_fourcc(*'mp4v'),
+            self._camera.fps,
+            self._camera.frame_size
+        )
         return file, writer

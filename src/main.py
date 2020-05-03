@@ -20,8 +20,11 @@ logging.basicConfig(
 
 def main():
     """Surveillance Telegram Bot start up function."""
-    bot = Bot(token=BOT_API_TOKEN, username=AUTHORIZED_USER,
-              log_level=BOT_LOG_LEVEL)
+    bot = Bot(
+        token=BOT_API_TOKEN,
+        username=AUTHORIZED_USER,
+        log_level=BOT_LOG_LEVEL
+    )
     bot.start()
 
 

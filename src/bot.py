@@ -30,8 +30,12 @@ class Bot:
             bot (without @).
         log_level: Logging level for logging module.
     """
-    def __init__(self, token: str, username: str,
-                 log_level: Union[int, str, None] = None):
+    def __init__(
+            self,
+            token: str,
+            username: str,
+            log_level: Union[int, str, None] = None
+    ):
         self.camera = Camera()
         self.logger = logging.getLogger(__name__)
         if log_level:
@@ -64,8 +68,11 @@ class Bot:
 
             # Checks if user is authorized
             if update.effective_chat.username != self.authorized_user:
-                logger.warning('Unauthorized call to "%s" command by @%s',
-                               command, update.effective_chat.username)
+                logger.warning(
+                    'Unauthorized call to "%s" command by @%s',
+                    command,
+                    update.effective_chat.username
+                )
                 update.message.reply_text("Unauthorized")
                 return
 
@@ -113,16 +120,22 @@ class Bot:
                 '/surveillance_status'
             ]
         ]
-        reply_markup = ReplyKeyboardMarkup(custom_keyboard,
-                                           resize_keyboard=True)
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text="Test Surveillance Bot by Pablo Chinea",
-                                 reply_markup=reply_markup)
+        reply_markup = ReplyKeyboardMarkup(
+            custom_keyboard,
+            resize_keyboard=True
+        )
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Test Surveillance Bot by Pablo Chinea",
+            reply_markup=reply_markup
+        )
         self.logger.info("New chat started")
 
-    def _command_get_photo(self,
-                           update: Update,
-                           context: CallbackContext) -> None:
+    def _command_get_photo(
+            self,
+            update: Update,
+            context: CallbackContext
+    ) -> None:
         """
         Handler for `/get_photo` command.
 
@@ -133,14 +146,20 @@ class Bot:
             context: The context object for the update.
         """
         # Upload photo
-        context.bot.send_chat_action(chat_id=update.effective_chat.id,
-                                     action=ChatAction.UPLOAD_PHOTO)
-        context.bot.send_photo(chat_id=update.effective_chat.id,
-                               photo=self.camera.get_photo())
+        context.bot.send_chat_action(
+            chat_id=update.effective_chat.id,
+            action=ChatAction.UPLOAD_PHOTO
+        )
+        context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=self.camera.get_photo()
+        )
 
-    def _command_get_video(self,
-                           update: Update,
-                           context: CallbackContext) -> None:
+    def _command_get_video(
+            self,
+            update: Update,
+            context: CallbackContext
+    ) -> None:
         """
         Handler for `/get_video` command.
 
@@ -151,20 +170,28 @@ class Bot:
             context: The context object for the update.
         """
         # Record video
-        context.bot.send_chat_action(chat_id=update.effective_chat.id,
-                                     action=ChatAction.RECORD_VIDEO)
+        context.bot.send_chat_action(
+            chat_id=update.effective_chat.id,
+            action=ChatAction.RECORD_VIDEO
+        )
         video = self.camera.get_video()
 
         # Upload video
-        context.bot.send_chat_action(chat_id=update.effective_chat.id,
-                                     action=ChatAction.UPLOAD_VIDEO)
-        context.bot.send_video(chat_id=update.effective_chat.id,
-                               video=video)
+        context.bot.send_chat_action(
+            chat_id=update.effective_chat.id,
+            action=ChatAction.UPLOAD_VIDEO
+        )
+        context.bot.send_video(
+            chat_id=update.effective_chat.id,
+            video=video
+        )
 
     @run_async
-    def _command_surveillance_start(self,
-                                    update: Update,
-                                    context: CallbackContext) -> None:
+    def _command_surveillance_start(
+            self,
+            update: Update,
+            context: CallbackContext
+    ) -> None:
         """
         Handler for `/surveillance_start` command.
 
@@ -190,29 +217,42 @@ class Bot:
         for data in self.camera.surveillance_start():
             if 'detected' in data:
                 update.message.reply_text('Motion detected!')
-                context.bot.send_chat_action(chat_id=update.effective_chat.id,
-                                             action=ChatAction.RECORD_VIDEO)
+                context.bot.send_chat_action(
+                    chat_id=update.effective_chat.id,
+                    action=ChatAction.RECORD_VIDEO
+                )
             if 'photo' in data:
-                context.bot.send_chat_action(chat_id=update.effective_chat.id,
-                                             action=ChatAction.UPLOAD_PHOTO)
-                context.bot.send_photo(chat_id=update.effective_chat.id,
-                                       photo=data['photo'],
-                                       caption=f'Capture '
-                                               f'{data["id"]}/{data["total"]}')
-                context.bot.send_chat_action(chat_id=update.effective_chat.id,
-                                             action=ChatAction.RECORD_VIDEO)
+                context.bot.send_chat_action(
+                    chat_id=update.effective_chat.id,
+                    action=ChatAction.UPLOAD_PHOTO
+                )
+                context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=data['photo'],
+                    caption=f'Capture {data["id"]}/{data["total"]}'
+                )
+                context.bot.send_chat_action(
+                    chat_id=update.effective_chat.id,
+                    action=ChatAction.RECORD_VIDEO
+                )
             if 'video' in data:
-                context.bot.send_chat_action(chat_id=update.effective_chat.id,
-                                             action=ChatAction.UPLOAD_VIDEO)
-                context.bot.send_video(chat_id=update.effective_chat.id,
-                                       video=data['video'])
+                context.bot.send_chat_action(
+                    chat_id=update.effective_chat.id,
+                    action=ChatAction.UPLOAD_VIDEO
+                )
+                context.bot.send_video(
+                    chat_id=update.effective_chat.id,
+                    video=data['video']
+                )
 
         update.message.reply_text("Surveillance mode stopped")
         self.logger.info('Surveillance mode stop')
 
-    def _command_surveillance_stop(self,
-                                   update: Update,
-                                   _: CallbackContext) -> None:
+    def _command_surveillance_stop(
+            self,
+            update: Update,
+            _: CallbackContext
+    ) -> None:
         """
         Handler for `/surveillance_stop` command.
 
@@ -230,9 +270,11 @@ class Bot:
         # Stop surveillance.
         self.camera.surveillance_stop()
 
-    def _command_surveillance_status(self,
-                                     update: Update,
-                                     _: CallbackContext) -> None:
+    def _command_surveillance_status(
+            self,
+            update: Update,
+            _: CallbackContext
+    ) -> None:
         """
         Handler for `/surveillance_stats` command.
 
