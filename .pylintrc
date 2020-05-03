@@ -2,3 +2,4 @@
 extension-pkg-whitelist=cv2
 good-names=i, j, k, ex, Run, _, x, y
 no-docstring-rgx=__.*__
+min-public-methods=1
