@@ -7,9 +7,9 @@ the user (through a telegram chat) and the camera.
 import inspect
 import logging
 from functools import wraps
-from typing import Callable, Union
+from typing import Callable, Union, Optional
 
-from telegram import Update, ReplyKeyboardMarkup, ChatAction
+from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, run_async
 
 from camera import Camera
@@ -103,33 +103,74 @@ class Bot:
         """
         Handler for `/start` command.
 
-        It sends a presentation to the user and builds a custom keyboard.
+        It sends a presentation to the user and calls the help command.
 
         Args:
             update: The update to be handled.
             context: The context object for the update.
         """
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Welcome to the *Surveillance Telegram Bot*",
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+        self._command_help(update, context)
+
+    def _get_reply_keyboard(
+            self,
+            is_active: Optional[bool] = None
+    ) -> ReplyKeyboardMarkup:
+        """
+        Generates Reply Keyboard content.
+
+        Args:
+            is_active: Overrides surveillance mode status.
+
+        Returns:
+            ReplyKeyboardMarkup instance with the menu content.
+
+        """
+        active = self.camera.is_surveillance_active \
+            if is_active is None else is_active
         custom_keyboard = [
             [
                 '/get_photo',
                 '/get_video'
             ],
             [
-                '/surveillance_start',
-                '/surveillance_stop',
-                '/surveillance_status'
+                '/surveillance_{}'.format('stop' if active else 'start')
             ]
         ]
-        reply_markup = ReplyKeyboardMarkup(
+        return ReplyKeyboardMarkup(
             custom_keyboard,
             resize_keyboard=True
         )
+
+    def _command_help(
+            self,
+            update: Update,
+            context: CallbackContext
+    ) -> None:
         context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Test Surveillance Bot by Pablo Chinea",
-            reply_markup=reply_markup
+            chat_id=update.message.chat_id,
+            text="With this bot you can request that a photo or video be "
+                 "taken with the cam|. It also has a surveillance mode that "
+                 "will warn when it detects movement and will start "
+                 "recording a video, and during the recording, photos will "
+                 "be taken and sent periodically|.\n\n"
+                 "These are the available commands:\n\n"
+                 "*General commands*\n"
+                 "/help |- Shows this help text\n"
+                 "/get|_photo |- Grabs a picture from the cam\n"
+                 "/get|_video |- Grabs a video from the cam\n\n"
+                 "*Surveillance mode commands*\n"
+                 "/surveillance|_start |- Starts surveillance mode\n"
+                 "/surveillance|_stop |- Starts surveillance mode\n"
+                 "/surveillance|_status |- Indicates if surveillance mode "
+                 "is active or not".replace('|', '\\'),
+            parse_mode=ParseMode.MARKDOWN_V2,
+            reply_markup=self._get_reply_keyboard()
         )
-        self.logger.info("New chat started")
 
     def _command_get_photo(
             self,
@@ -213,10 +254,16 @@ class Bot:
 
         # Starts surveillance.
         self.logger.info('Surveillance mode start')
-        update.message.reply_text("Surveillance mode started")
+        update.message.reply_text(
+            "Surveillance mode started",
+            reply_markup=self._get_reply_keyboard(True)
+        )
         for data in self.camera.surveillance_start():
             if 'detected' in data:
-                update.message.reply_text('Motion detected!')
+                update.message.reply_text(
+                    '*MOTION DETECTED|!*'.replace('|', '\\'),
+                    parse_mode=ParseMode.MARKDOWN_V2
+                )
                 context.bot.send_chat_action(
                     chat_id=update.effective_chat.id,
                     action=ChatAction.RECORD_VIDEO
@@ -245,7 +292,10 @@ class Bot:
                     video=data['video']
                 )
 
-        update.message.reply_text("Surveillance mode stopped")
+        update.message.reply_text(
+            "Surveillance mode stopped",
+            reply_markup=self._get_reply_keyboard()
+        )
         self.logger.info('Surveillance mode stop')
 
     def _command_surveillance_stop(
