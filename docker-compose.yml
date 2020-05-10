@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  surveillance-telegram-bot:
+    container_name: surveillance-telegram-bot
+    image: surveillance-telegram-bot
+    devices:
+      - /dev/video0:/dev/video0
+    environment:
+      # Mandatory variables
+      - BOT_API_TOKEN
+      - AUTHORIZED_USER
+      # Optional variables
+      - LOG_LEVEL
+      - BOT_LOG_LEVEL
