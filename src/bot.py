@@ -109,8 +109,7 @@ class Bot:
             update: The update to be handled.
             context: The context object for the update.
         """
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
+        update.message.reply_text(
             text="Welcome to the *Surveillance Telegram Bot*",
             parse_mode=ParseMode.MARKDOWN_V2
         )
@@ -149,10 +148,9 @@ class Bot:
     def _command_help(
             self,
             update: Update,
-            context: CallbackContext
+            _: CallbackContext
     ) -> None:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
+        update.message.reply_text(
             text="With this bot you can request that a photo or video be "
                  "taken with the cam|. It also has a surveillance mode that "
                  "will warn when it detects movement and will start "
