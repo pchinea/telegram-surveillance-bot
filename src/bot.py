@@ -110,7 +110,7 @@ class Bot:
             context: The context object for the update.
         """
         context.bot.send_message(
-            chat_id=update.effective_chat.id,
+            chat_id=update.message.chat_id,
             text="Welcome to the *Surveillance Telegram Bot*",
             parse_mode=ParseMode.MARKDOWN_V2
         )
@@ -188,11 +188,11 @@ class Bot:
         """
         # Upload photo
         context.bot.send_chat_action(
-            chat_id=update.effective_chat.id,
+            chat_id=update.message.chat_id,
             action=ChatAction.UPLOAD_PHOTO
         )
         context.bot.send_photo(
-            chat_id=update.effective_chat.id,
+            chat_id=update.message.chat_id,
             photo=self.camera.get_photo()
         )
 
@@ -212,18 +212,18 @@ class Bot:
         """
         # Record video
         context.bot.send_chat_action(
-            chat_id=update.effective_chat.id,
+            chat_id=update.message.chat_id,
             action=ChatAction.RECORD_VIDEO
         )
         video = self.camera.get_video()
 
         # Upload video
         context.bot.send_chat_action(
-            chat_id=update.effective_chat.id,
+            chat_id=update.message.chat_id,
             action=ChatAction.UPLOAD_VIDEO
         )
         context.bot.send_video(
-            chat_id=update.effective_chat.id,
+            chat_id=update.message.chat_id,
             video=video
         )
 
@@ -265,30 +265,30 @@ class Bot:
                     parse_mode=ParseMode.MARKDOWN_V2
                 )
                 context.bot.send_chat_action(
-                    chat_id=update.effective_chat.id,
+                    chat_id=update.message.chat_id,
                     action=ChatAction.RECORD_VIDEO
                 )
             if 'photo' in data:
                 context.bot.send_chat_action(
-                    chat_id=update.effective_chat.id,
+                    chat_id=update.message.chat_id,
                     action=ChatAction.UPLOAD_PHOTO
                 )
                 context.bot.send_photo(
-                    chat_id=update.effective_chat.id,
+                    chat_id=update.message.chat_id,
                     photo=data['photo'],
                     caption=f'Capture {data["id"]}/{data["total"]}'
                 )
                 context.bot.send_chat_action(
-                    chat_id=update.effective_chat.id,
+                    chat_id=update.message.chat_id,
                     action=ChatAction.RECORD_VIDEO
                 )
             if 'video' in data:
                 context.bot.send_chat_action(
-                    chat_id=update.effective_chat.id,
+                    chat_id=update.message.chat_id,
                     action=ChatAction.UPLOAD_VIDEO
                 )
                 context.bot.send_video(
-                    chat_id=update.effective_chat.id,
+                    chat_id=update.message.chat_id,
                     video=data['video']
                 )
 
