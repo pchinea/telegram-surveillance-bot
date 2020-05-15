@@ -12,7 +12,7 @@ from typing import Callable, Union, Optional, Any
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, \
     InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, run_async, \
-    ConversationHandler, CallbackQueryHandler
+    ConversationHandler, CallbackQueryHandler, Filters, MessageHandler
 
 from camera import Camera
 
@@ -380,13 +380,13 @@ class BotConfig:
     ) = map(chr, range(3, 8))
 
     # State definitions for input conversation
-    BOOLEAN_INPUT, INTEGER_INPUT = map(chr, range(9, 11))
+    BOOLEAN_INPUT, INTEGER_INPUT = map(chr, range(8, 10))
 
     # Shortcut for ConversationHandler.END
     END = ConversationHandler.END
 
     # Auxiliary constants
-    CURRENT_VARIABLE, ENABLE, DISABLE = map(chr, range(12, 15))
+    CURRENT_VARIABLE, RETURN_HANDLER, ENABLE, DISABLE = map(chr, range(10, 14))
 
     @staticmethod
     def start(update: Update, _: CallbackContext) -> chr:
@@ -436,11 +436,14 @@ class BotConfig:
         ]
         keyboard = InlineKeyboardMarkup(buttons)
 
-        update.callback_query.answer()
-        update.callback_query.edit_message_text(
-            text=text,
-            reply_markup=keyboard
-        )
+        if update.message:
+            update.message.reply_text(text=text, reply_markup=keyboard)
+        else:
+            update.callback_query.answer()
+            update.callback_query.edit_message_text(
+                text=text,
+                reply_markup=keyboard
+            )
 
         return BotConfig.GENERAL_CONFIG
 
@@ -467,13 +470,18 @@ class BotConfig:
         ]
         keyboard = InlineKeyboardMarkup(buttons)
 
-        update.callback_query.answer()
-        update.callback_query.edit_message_text(
-            text=text,
-            reply_markup=keyboard
-        )
+        if update.message:
+            update.message.reply_text(text=text, reply_markup=keyboard)
+        else:
+            update.callback_query.answer()
+            update.callback_query.edit_message_text(
+                text=text,
+                reply_markup=keyboard
+            )
 
         return BotConfig.SURVEILLANCE_CONFIG
+
+    # General configuration options.
 
     @staticmethod
     def change_timestamp(
@@ -485,11 +493,70 @@ class BotConfig:
         current_status = 'Enabled' if timestamp else 'Disabled'
         text = f'Change time stamping\n' \
                f'Current value: *{current_status}*'
-        context.user_data[
-            BotConfig.CURRENT_VARIABLE
-        ] = BotConfig.TIMESTAMP
 
-        return BotConfig.boolean_keyboard(text, update)
+        return BotConfig.boolean_question(
+            update,
+            context,
+            text,
+            BotConfig.TIMESTAMP,
+            BotConfig.general_config
+        )
+
+    @staticmethod
+    def change_od_video_duration(
+            update: Update,
+            context: CallbackContext
+    ) -> chr:
+        od_video_duration = context.bot_data[BotConfig.OD_VIDEO_DURATION]
+
+        text = f'Change On Demand video duration\n' \
+               f'Current value: *{od_video_duration}*'
+
+        return BotConfig.integer_question(
+            update,
+            context,
+            text,
+            BotConfig.OD_VIDEO_DURATION,
+            BotConfig.general_config
+        )
+
+    # Surveillance mode configuration options.
+
+    @staticmethod
+    def change_srv_video_duration(
+            update: Update,
+            context: CallbackContext
+    ) -> chr:
+        srv_video_duration = context.bot_data[BotConfig.SRV_VIDEO_DURATION]
+
+        text = f'Change Surveillance video duration\n' \
+               f'Current value: *{srv_video_duration}*'
+
+        return BotConfig.integer_question(
+            update,
+            context,
+            text,
+            BotConfig.SRV_VIDEO_DURATION,
+            BotConfig.surveillance_config
+        )
+
+    @staticmethod
+    def change_srv_picture_interval(
+            update: Update,
+            context: CallbackContext
+    ) -> chr:
+        srv_picture_interval = context.bot_data[BotConfig.SRV_PICTURE_INTERVAL]
+
+        text = f'Change Surveillance picture interval\n' \
+               f'Current value: *{srv_picture_interval}*'
+
+        return BotConfig.integer_question(
+            update,
+            context,
+            text,
+            BotConfig.SRV_PICTURE_INTERVAL,
+            BotConfig.surveillance_config
+        )
 
     @staticmethod
     def change_motion_contours(
@@ -501,14 +568,28 @@ class BotConfig:
         current_status = 'Enabled' if motion_contours else 'Disabled'
         text = f'Change motion contours\n' \
                f'Current value: *{current_status}*'
-        context.user_data[
-            BotConfig.CURRENT_VARIABLE
-        ] = BotConfig.SRV_MOTION_CONTOURS
 
-        return BotConfig.boolean_keyboard(text, update)
+        return BotConfig.boolean_question(
+            update,
+            context,
+            text,
+            BotConfig.SRV_MOTION_CONTOURS,
+            BotConfig.surveillance_config
+        )
+
+    # Questions helpers.
 
     @staticmethod
-    def boolean_keyboard(text: str, update: Update) -> chr:
+    def boolean_question(
+            update: Update,
+            context: CallbackContext,
+            text: str,
+            current_variable: chr,
+            return_handler: chr
+    ) -> chr:
+        context.user_data[BotConfig.CURRENT_VARIABLE] = current_variable
+        context.user_data[BotConfig.RETURN_HANDLER] = return_handler
+
         buttons = [[
             InlineKeyboardButton(
                 text='Enable',
@@ -531,12 +612,51 @@ class BotConfig:
         return BotConfig.BOOLEAN_INPUT
 
     @staticmethod
+    def integer_question(
+            update: Update,
+            context: CallbackContext,
+            text: str,
+            current_variable: chr,
+            return_handler: chr
+    ) -> chr:
+        context.user_data[BotConfig.CURRENT_VARIABLE] = current_variable
+        context.user_data[BotConfig.RETURN_HANDLER] = return_handler
+
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(
+            text=text,
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+
+        return BotConfig.INTEGER_INPUT
+
+    # Input handlers.
+
+    @staticmethod
     def boolean_input(update: Update, context: CallbackContext) -> chr:
         context.bot_data[
             context.user_data[BotConfig.CURRENT_VARIABLE]
         ] = update.callback_query.data == BotConfig.ENABLE
 
-        return BotConfig.general_config(update, context)
+        return context.user_data[BotConfig.RETURN_HANDLER](update, context)
+
+    @staticmethod
+    def integer_input(update: Update, context: CallbackContext) -> chr:
+        try:
+            value = int(update.message.text)
+            assert value > 0
+            assert value < 100
+        except (ValueError, AssertionError):
+            update.message.reply_text(
+                'Invalid value, insert an integer number between 1 and 99'
+            )
+            return BotConfig.INTEGER_INPUT
+
+        context.bot_data[
+            context.user_data[BotConfig.CURRENT_VARIABLE]
+        ] = value
+
+        return context.user_data[BotConfig.RETURN_HANDLER](update, context)
 
     @staticmethod
     def end(update: Update, _: CallbackContext) -> int:
@@ -571,8 +691,14 @@ class BotConfig:
                     CallbackQueryHandler(
                         BotConfig.change_timestamp,
                         pattern='^'
-                                + str(BotConfig.CHANGE_TIMESTAMP)
-                                + '$'
+                        + str(BotConfig.CHANGE_TIMESTAMP)
+                        + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig.change_od_video_duration,
+                        pattern='^'
+                        + str(BotConfig.CHANGE_OD_VIDEO_DURATION)
+                        + '$'
                     ),
                     CallbackQueryHandler(
                         BotConfig.start,
@@ -581,10 +707,22 @@ class BotConfig:
                 ],
                 BotConfig.SURVEILLANCE_CONFIG: [
                     CallbackQueryHandler(
+                        BotConfig.change_srv_video_duration,
+                        pattern='^'
+                        + str(BotConfig.CHANGE_SRV_VIDEO_DURATION)
+                        + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig.change_srv_picture_interval,
+                        pattern='^'
+                        + str(BotConfig.CHANGE_SRV_PICTURE_INTERVAL)
+                        + '$'
+                    ),
+                    CallbackQueryHandler(
                         BotConfig.change_motion_contours,
                         pattern='^'
-                                + str(BotConfig.CHANGE_SRV_MOTION_CONTOURS)
-                                + '$'
+                        + str(BotConfig.CHANGE_SRV_MOTION_CONTOURS)
+                        + '$'
                     ),
                     CallbackQueryHandler(
                         BotConfig.start,
@@ -595,10 +733,16 @@ class BotConfig:
                     CallbackQueryHandler(
                         BotConfig.boolean_input,
                         pattern='^'
-                                + str(BotConfig.ENABLE)
-                                + '$|^'
-                                + str(BotConfig.DISABLE)
-                                + '$'
+                        + str(BotConfig.ENABLE)
+                        + '$|^'
+                        + str(BotConfig.DISABLE)
+                        + '$'
+                    )
+                ],
+                BotConfig.INTEGER_INPUT: [
+                    MessageHandler(
+                        Filters.text,
+                        BotConfig.integer_input
                     )
                 ]
             },
