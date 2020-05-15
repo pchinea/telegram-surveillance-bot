@@ -9,8 +9,10 @@ import logging
 from functools import wraps
 from typing import Callable, Union, Optional
 
-from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
-from telegram.ext import Updater, CommandHandler, CallbackContext, run_async
+from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, \
+    InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackContext, run_async, \
+    ConversationHandler, CallbackQueryHandler
 
 from camera import Camera
 
@@ -49,6 +51,8 @@ class Bot:
             if name.startswith('_command_'):
                 self._register_command(method)
 
+        self.updater.dispatcher.add_handler(BotConfig.get_config())
+
     def _register_command(self, func: HandlerType):
         """
         Register a function as a command handler in the dispatcher.
@@ -76,6 +80,7 @@ class Bot:
                 update.message.reply_text("Unauthorized")
                 return
 
+            BotConfig.ensure_defaults(context)
             logger.debug('Received "%s" command', command)
             func(update, context)
 
@@ -155,17 +160,24 @@ class Bot:
                  "taken with the cam|. It also has a surveillance mode that "
                  "will warn when it detects movement and will start "
                  "recording a video, and during the recording, photos will "
-                 "be taken and sent periodically|.\n\n"
-                 "These are the available commands:\n\n"
-                 "*General commands*\n"
-                 "/help |- Shows this help text\n"
+                 "be taken and sent periodically|.\n"
+                 "\n"
+                 "These are the available commands:\n"
+                 "\n"
+                 "*On Demand commands*\n"
                  "/get|_photo |- Grabs a picture from the cam\n"
-                 "/get|_video |- Grabs a video from the cam\n\n"
-                 "*Surveillance mode commands*\n"
+                 "/get|_video |- Grabs a video from the cam\n"
+                 "\n"
+                 "*Surveillance Mode commands*\n"
                  "/surveillance|_start |- Starts surveillance mode\n"
                  "/surveillance|_stop |- Starts surveillance mode\n"
                  "/surveillance|_status |- Indicates if surveillance mode "
-                 "is active or not".replace('|', '\\'),
+                 "is active or not\n"
+                 "\n"
+                 "*General commands*\n"
+                 "/config |- Invokes configuration menu\n"
+                 "/help |- Shows this help text\n"
+                 "".replace('|', '\\'),
             parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=self._get_reply_keyboard()
         )
@@ -336,3 +348,169 @@ class Bot:
             update.message.reply_text("Surveillance mode is active")
         else:
             update.message.reply_text("Surveillance mode is not active")
+
+
+class BotConfig:
+    MAIN_MENU, GENERAL_CONFIG, SURVEILLANCE_CONFIG = map(chr, range(3))
+
+    (
+        PRINT_TIMESTAMP,
+        OD_VIDEO_DURATION,
+        SRV_VIDEO_DURATION,
+        SRV_PICTURE_INTERVAL,
+        SRV_DRAW_CONTOURS
+    ) = map(chr, range(3, 8))
+
+    END = ConversationHandler.END
+
+    @staticmethod
+    def start(update: Update, _: CallbackContext) -> chr:
+        text = 'This is the main menu'
+        buttons = [
+            [InlineKeyboardButton(
+                text='General configuration',
+                callback_data=str(BotConfig.GENERAL_CONFIG)
+            )],
+            [InlineKeyboardButton(
+                text='Surveillance mode configuration',
+                callback_data=str(BotConfig.SURVEILLANCE_CONFIG)
+            )],
+            [InlineKeyboardButton(
+                text='Done',
+                callback_data=str(BotConfig.END)
+            )]
+        ]
+        keyboard = InlineKeyboardMarkup(buttons)
+
+        if update.message:
+            update.message.reply_text(text=text, reply_markup=keyboard)
+        else:
+            update.callback_query.edit_message_text(
+                text=text,
+                reply_markup=keyboard
+            )
+
+        return BotConfig.MAIN_MENU
+
+    @staticmethod
+    def general_config(update: Update, _: CallbackContext) -> chr:
+        text = 'General configuration'
+        buttons = [
+            [InlineKeyboardButton(
+                text='Print timestamp',
+                callback_data=str(BotConfig.PRINT_TIMESTAMP)
+            )],
+            [InlineKeyboardButton(
+                text='On Demand video duration',
+                callback_data=str(BotConfig.OD_VIDEO_DURATION)
+            )],
+            [InlineKeyboardButton(
+                text='Back',
+                callback_data=str(BotConfig.END)
+            )]
+        ]
+        keyboard = InlineKeyboardMarkup(buttons)
+
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(
+            text=text,
+            reply_markup=keyboard
+        )
+
+        return BotConfig.GENERAL_CONFIG
+
+    @staticmethod
+    def surveillance_config(update: Update, _: CallbackContext) -> chr:
+        text = 'Surveillance Mode configuration'
+        buttons = [
+            [InlineKeyboardButton(
+                text='Video duration',
+                callback_data=str(BotConfig.SRV_VIDEO_DURATION)
+            )],
+            [InlineKeyboardButton(
+                text='Picture Interval',
+                callback_data=str(BotConfig.SRV_PICTURE_INTERVAL)
+            )],
+            [InlineKeyboardButton(
+                text='Draw motion contours',
+                callback_data=str(BotConfig.SRV_DRAW_CONTOURS)
+            )],
+            [InlineKeyboardButton(
+                text='Back',
+                callback_data=str(BotConfig.END)
+            )]
+        ]
+        keyboard = InlineKeyboardMarkup(buttons)
+
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(
+            text=text,
+            reply_markup=keyboard
+        )
+
+        return BotConfig.SURVEILLANCE_CONFIG
+
+    @staticmethod
+    def end(update: Update, _: CallbackContext) -> int:
+        if update.callback_query:
+            update.callback_query.answer()
+            update.callback_query.edit_message_text(text='Configuration done')
+        else:
+            update.message.reply_text('Configuration canceled')
+
+        return BotConfig.END
+
+    @staticmethod
+    def get_config() -> ConversationHandler:
+        main_handler = ConversationHandler(
+            entry_points=[CommandHandler('config', BotConfig.start)],
+            states={
+                BotConfig.MAIN_MENU: [
+                    CallbackQueryHandler(
+                        BotConfig.end,
+                        pattern='^' + str(BotConfig.END) + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig.general_config,
+                        pattern='^' + str(BotConfig.GENERAL_CONFIG) + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig.surveillance_config,
+                        pattern='^' + str(BotConfig.SURVEILLANCE_CONFIG) + '$'
+                    )
+                ],
+                BotConfig.GENERAL_CONFIG: [
+                    CallbackQueryHandler(
+                        BotConfig.start,
+                        pattern='^' + str(BotConfig.END) + '$'
+                    )
+                ],
+                BotConfig.SURVEILLANCE_CONFIG: [
+                    CallbackQueryHandler(
+                        BotConfig.start,
+                        pattern='^' + str(BotConfig.END) + '$'
+                    )
+                ]
+            },
+            fallbacks=[CommandHandler('stop_config', BotConfig.end)],
+        )
+
+        return main_handler
+
+    @staticmethod
+    def ensure_defaults(context: CallbackContext) -> None:
+        context.bot_data['print_timestamp'] = context.bot_data.get(
+            'print_timestamp', True
+        )
+        context.bot_data['od_video_duration'] = context.bot_data.get(
+            'od_video_duration', 5
+        )
+        context.bot_data['srv_video_duration'] = context.bot_data.get(
+            'srv_video_duration', 30
+        )
+        context.bot_data['srv_picture_interval'] = context.bot_data.get(
+            'srv_picture_interval', 5
+        )
+        context.bot_data['srv_draw_contours'] = context.bot_data.get(
+            'srv_draw_contours', True
+        )
