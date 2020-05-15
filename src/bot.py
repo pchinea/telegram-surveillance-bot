@@ -361,25 +361,32 @@ class Bot:
 
 class BotConfig:
     # Configuration variables
-    PRINT_TIMESTAMP = 'print_timestamp'
+    TIMESTAMP = 'timestamp'
     OD_VIDEO_DURATION = 'od_video_duration'
     SRV_VIDEO_DURATION = 'srv_video_duration'
     SRV_PICTURE_INTERVAL = 'srv_picture_interval'
-    SRV_DRAW_CONTOURS = 'srv_draw_contours'
+    SRV_MOTION_CONTOURS = 'srv_motion_contours'
 
     # State definitions for top level conversation
     MAIN_MENU, GENERAL_CONFIG, SURVEILLANCE_CONFIG = map(chr, range(3))
 
     # State definitions for second level conversation
     (
-        CHANGE_PRINT_TIMESTAMP,
+        CHANGE_TIMESTAMP,
         CHANGE_OD_VIDEO_DURATION,
         CHANGE_SRV_VIDEO_DURATION,
         CHANGE_SRV_PICTURE_INTERVAL,
-        CHANGE_SRV_DRAW_CONTOURS
+        CHANGE_SRV_MOTION_CONTOURS
     ) = map(chr, range(3, 8))
 
+    # State definitions for input conversation
+    BOOLEAN_INPUT, INTEGER_INPUT = map(chr, range(9, 11))
+
+    # Shortcut for ConversationHandler.END
     END = ConversationHandler.END
+
+    # Auxiliary constants
+    CURRENT_VARIABLE, ENABLE, DISABLE = map(chr, range(12, 15))
 
     @staticmethod
     def start(update: Update, _: CallbackContext) -> chr:
@@ -415,8 +422,8 @@ class BotConfig:
         text = 'General configuration'
         buttons = [
             [InlineKeyboardButton(
-                text='Print timestamp',
-                callback_data=str(BotConfig.CHANGE_PRINT_TIMESTAMP)
+                text='Timestamp',
+                callback_data=str(BotConfig.CHANGE_TIMESTAMP)
             )],
             [InlineKeyboardButton(
                 text='On Demand video duration',
@@ -451,7 +458,7 @@ class BotConfig:
             )],
             [InlineKeyboardButton(
                 text='Draw motion contours',
-                callback_data=str(BotConfig.CHANGE_SRV_DRAW_CONTOURS)
+                callback_data=str(BotConfig.CHANGE_SRV_MOTION_CONTOURS)
             )],
             [InlineKeyboardButton(
                 text='Back',
@@ -467,6 +474,69 @@ class BotConfig:
         )
 
         return BotConfig.SURVEILLANCE_CONFIG
+
+    @staticmethod
+    def change_timestamp(
+            update: Update,
+            context: CallbackContext
+    ) -> chr:
+        timestamp = context.bot_data[BotConfig.TIMESTAMP]
+
+        current_status = 'Enabled' if timestamp else 'Disabled'
+        text = f'Change time stamping\n' \
+               f'Current value: *{current_status}*'
+        context.user_data[
+            BotConfig.CURRENT_VARIABLE
+        ] = BotConfig.TIMESTAMP
+
+        return BotConfig.boolean_keyboard(text, update)
+
+    @staticmethod
+    def change_motion_contours(
+            update: Update,
+            context: CallbackContext
+    ) -> chr:
+        motion_contours = context.bot_data[BotConfig.SRV_MOTION_CONTOURS]
+
+        current_status = 'Enabled' if motion_contours else 'Disabled'
+        text = f'Change motion contours\n' \
+               f'Current value: *{current_status}*'
+        context.user_data[
+            BotConfig.CURRENT_VARIABLE
+        ] = BotConfig.SRV_MOTION_CONTOURS
+
+        return BotConfig.boolean_keyboard(text, update)
+
+    @staticmethod
+    def boolean_keyboard(text: str, update: Update) -> chr:
+        buttons = [[
+            InlineKeyboardButton(
+                text='Enable',
+                callback_data=str(BotConfig.ENABLE)
+            ),
+            InlineKeyboardButton(
+                text='Disable',
+                callback_data=str(BotConfig.DISABLE)
+            ),
+        ]]
+        keyboard = InlineKeyboardMarkup(buttons)
+
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(
+            text=text,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+
+        return BotConfig.BOOLEAN_INPUT
+
+    @staticmethod
+    def boolean_input(update: Update, context: CallbackContext) -> chr:
+        context.bot_data[
+            context.user_data[BotConfig.CURRENT_VARIABLE]
+        ] = update.callback_query.data == BotConfig.ENABLE
+
+        return BotConfig.general_config(update, context)
 
     @staticmethod
     def end(update: Update, _: CallbackContext) -> int:
@@ -499,14 +569,36 @@ class BotConfig:
                 ],
                 BotConfig.GENERAL_CONFIG: [
                     CallbackQueryHandler(
+                        BotConfig.change_timestamp,
+                        pattern='^'
+                                + str(BotConfig.CHANGE_TIMESTAMP)
+                                + '$'
+                    ),
+                    CallbackQueryHandler(
                         BotConfig.start,
                         pattern='^' + str(BotConfig.END) + '$'
                     )
                 ],
                 BotConfig.SURVEILLANCE_CONFIG: [
                     CallbackQueryHandler(
+                        BotConfig.change_motion_contours,
+                        pattern='^'
+                                + str(BotConfig.CHANGE_SRV_MOTION_CONTOURS)
+                                + '$'
+                    ),
+                    CallbackQueryHandler(
                         BotConfig.start,
                         pattern='^' + str(BotConfig.END) + '$'
+                    )
+                ],
+                BotConfig.BOOLEAN_INPUT: [
+                    CallbackQueryHandler(
+                        BotConfig.boolean_input,
+                        pattern='^'
+                                + str(BotConfig.ENABLE)
+                                + '$|^'
+                                + str(BotConfig.DISABLE)
+                                + '$'
                     )
                 ]
             },
@@ -517,8 +609,8 @@ class BotConfig:
 
     @staticmethod
     def ensure_defaults(context: CallbackContext) -> None:
-        if BotConfig.PRINT_TIMESTAMP not in context.bot_data:
-            context.bot_data[BotConfig.PRINT_TIMESTAMP] = True
+        if BotConfig.TIMESTAMP not in context.bot_data:
+            context.bot_data[BotConfig.TIMESTAMP] = True
 
         if BotConfig.OD_VIDEO_DURATION not in context.bot_data:
             context.bot_data[BotConfig.OD_VIDEO_DURATION] = 5
@@ -529,5 +621,5 @@ class BotConfig:
         if BotConfig.SRV_PICTURE_INTERVAL not in context.bot_data:
             context.bot_data[BotConfig.SRV_PICTURE_INTERVAL] = 5
 
-        if BotConfig.SRV_DRAW_CONTOURS not in context.bot_data:
-            context.bot_data[BotConfig.SRV_DRAW_CONTOURS] = True
+        if BotConfig.SRV_MOTION_CONTOURS not in context.bot_data:
+            context.bot_data[BotConfig.SRV_MOTION_CONTOURS] = True
