@@ -675,16 +675,16 @@ class BotConfig:
             states={
                 BotConfig.MAIN_MENU: [
                     CallbackQueryHandler(
-                        BotConfig.end,
-                        pattern='^' + str(BotConfig.END) + '$'
-                    ),
-                    CallbackQueryHandler(
                         BotConfig.general_config,
                         pattern='^' + str(BotConfig.GENERAL_CONFIG) + '$'
                     ),
                     CallbackQueryHandler(
                         BotConfig.surveillance_config,
                         pattern='^' + str(BotConfig.SURVEILLANCE_CONFIG) + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig.end,
+                        pattern='^' + str(BotConfig.END) + '$'
                     )
                 ],
                 BotConfig.GENERAL_CONFIG: [
