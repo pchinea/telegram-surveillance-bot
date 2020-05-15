@@ -360,14 +360,23 @@ class Bot:
 
 
 class BotConfig:
+    # Configuration variables
+    PRINT_TIMESTAMP = 'print_timestamp'
+    OD_VIDEO_DURATION = 'od_video_duration'
+    SRV_VIDEO_DURATION = 'srv_video_duration'
+    SRV_PICTURE_INTERVAL = 'srv_picture_interval'
+    SRV_DRAW_CONTOURS = 'srv_draw_contours'
+
+    # State definitions for top level conversation
     MAIN_MENU, GENERAL_CONFIG, SURVEILLANCE_CONFIG = map(chr, range(3))
 
+    # State definitions for second level conversation
     (
-        PRINT_TIMESTAMP,
-        OD_VIDEO_DURATION,
-        SRV_VIDEO_DURATION,
-        SRV_PICTURE_INTERVAL,
-        SRV_DRAW_CONTOURS
+        CHANGE_PRINT_TIMESTAMP,
+        CHANGE_OD_VIDEO_DURATION,
+        CHANGE_SRV_VIDEO_DURATION,
+        CHANGE_SRV_PICTURE_INTERVAL,
+        CHANGE_SRV_DRAW_CONTOURS
     ) = map(chr, range(3, 8))
 
     END = ConversationHandler.END
@@ -407,11 +416,11 @@ class BotConfig:
         buttons = [
             [InlineKeyboardButton(
                 text='Print timestamp',
-                callback_data=str(BotConfig.PRINT_TIMESTAMP)
+                callback_data=str(BotConfig.CHANGE_PRINT_TIMESTAMP)
             )],
             [InlineKeyboardButton(
                 text='On Demand video duration',
-                callback_data=str(BotConfig.OD_VIDEO_DURATION)
+                callback_data=str(BotConfig.CHANGE_OD_VIDEO_DURATION)
             )],
             [InlineKeyboardButton(
                 text='Back',
@@ -434,15 +443,15 @@ class BotConfig:
         buttons = [
             [InlineKeyboardButton(
                 text='Video duration',
-                callback_data=str(BotConfig.SRV_VIDEO_DURATION)
+                callback_data=str(BotConfig.CHANGE_SRV_VIDEO_DURATION)
             )],
             [InlineKeyboardButton(
                 text='Picture Interval',
-                callback_data=str(BotConfig.SRV_PICTURE_INTERVAL)
+                callback_data=str(BotConfig.CHANGE_SRV_PICTURE_INTERVAL)
             )],
             [InlineKeyboardButton(
                 text='Draw motion contours',
-                callback_data=str(BotConfig.SRV_DRAW_CONTOURS)
+                callback_data=str(BotConfig.CHANGE_SRV_DRAW_CONTOURS)
             )],
             [InlineKeyboardButton(
                 text='Back',
@@ -508,18 +517,17 @@ class BotConfig:
 
     @staticmethod
     def ensure_defaults(context: CallbackContext) -> None:
-        context.bot_data['print_timestamp'] = context.bot_data.get(
-            'print_timestamp', True
-        )
-        context.bot_data['od_video_duration'] = context.bot_data.get(
-            'od_video_duration', 5
-        )
-        context.bot_data['srv_video_duration'] = context.bot_data.get(
-            'srv_video_duration', 30
-        )
-        context.bot_data['srv_picture_interval'] = context.bot_data.get(
-            'srv_picture_interval', 5
-        )
-        context.bot_data['srv_draw_contours'] = context.bot_data.get(
-            'srv_draw_contours', True
-        )
+        if BotConfig.PRINT_TIMESTAMP not in context.bot_data:
+            context.bot_data[BotConfig.PRINT_TIMESTAMP] = True
+
+        if BotConfig.OD_VIDEO_DURATION not in context.bot_data:
+            context.bot_data[BotConfig.OD_VIDEO_DURATION] = 5
+
+        if BotConfig.SRV_VIDEO_DURATION not in context.bot_data:
+            context.bot_data[BotConfig.SRV_VIDEO_DURATION] = 30
+
+        if BotConfig.SRV_PICTURE_INTERVAL not in context.bot_data:
+            context.bot_data[BotConfig.SRV_PICTURE_INTERVAL] = 5
+
+        if BotConfig.SRV_DRAW_CONTOURS not in context.bot_data:
+            context.bot_data[BotConfig.SRV_DRAW_CONTOURS] = True
