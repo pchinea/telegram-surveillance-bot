@@ -7,7 +7,7 @@ the user (through a telegram chat) and the camera.
 import inspect
 import logging
 from functools import wraps
-from typing import Callable, Union, Optional
+from typing import Callable, Union, Optional, Any
 
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, \
     InlineKeyboardButton, InlineKeyboardMarkup
@@ -16,7 +16,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, run_async, \
 
 from camera import Camera
 
-HandlerType = Callable[[Update, CallbackContext], None]
+HandlerType = Callable[[Update, CallbackContext], Any]
 
 
 class Bot:
@@ -46,29 +46,39 @@ class Bot:
 
         self.updater = Updater(token=token, use_context=True)
 
+        dispatcher = self.updater.dispatcher
+
         # Registers commands in the dispatcher
         for name, method in inspect.getmembers(self, inspect.ismethod):
             if name.startswith('_command_'):
-                self._register_command(method)
+                command = name.replace('_command_', '')
+                dispatcher.add_handler(self.command_handler(command, method))
 
-        self.updater.dispatcher.add_handler(BotConfig.get_config())
+        # Register configuration menu
+        dispatcher.add_handler(BotConfig.get_config(self))
 
-    def _register_command(self, func: HandlerType):
+    def command_handler(
+            self,
+            command: str,
+            callback: HandlerType
+    ) -> CommandHandler:
         """
-        Register a function as a command handler in the dispatcher.
+        Decorates callback and returns a CommandHandler.
 
-        This method also decorates the function to restrict its use to the
-        authorized user.
+        This decorator restricts command use to the authorized user, loads
+        defaults configuration options and adds debug logging.
 
         Args:
-            func: Function to be registered in the dispatcher.
+            command: The command this handler should listen for.
+            callback: The callback function for this handler.
+
+        Returns:
+            Handler instance to handle Telegram commands.
         """
         logger = self.logger
-        dispatcher = self.updater.dispatcher
-        command = func.__name__.replace('_command_', '')
 
-        @wraps(func)
-        def command_func(update: Update, context: CallbackContext) -> None:
+        @wraps(callback)
+        def wrapped(update: Update, context: CallbackContext) -> Any:
 
             # Checks if user is authorized
             if update.effective_chat.username != self.authorized_user:
@@ -78,14 +88,13 @@ class Bot:
                     update.effective_chat.username
                 )
                 update.message.reply_text("Unauthorized")
-                return
+                return None
 
             BotConfig.ensure_defaults(context)
             logger.debug('Received "%s" command', command)
-            func(update, context)
+            return callback(update, context)
 
-        # Adds handler to the dispatcher
-        dispatcher.add_handler(CommandHandler(command, command_func))
+        return CommandHandler(command, wrapped)
 
     def start(self):
         """
@@ -461,9 +470,9 @@ class BotConfig:
         return BotConfig.END
 
     @staticmethod
-    def get_config() -> ConversationHandler:
+    def get_config(bot: Bot) -> ConversationHandler:
         main_handler = ConversationHandler(
-            entry_points=[CommandHandler('config', BotConfig.start)],
+            entry_points=[bot.command_handler('config', BotConfig.start)],
             states={
                 BotConfig.MAIN_MENU: [
                     CallbackQueryHandler(
@@ -492,7 +501,7 @@ class BotConfig:
                     )
                 ]
             },
-            fallbacks=[CommandHandler('stop_config', BotConfig.end)],
+            fallbacks=[bot.command_handler('stop_config', BotConfig.end)],
         )
 
         return main_handler
