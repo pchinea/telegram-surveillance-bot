@@ -2,7 +2,9 @@
 Module for bot related functionality.
 
 This module implements the `Bot` class that manage the communication between
-the user (through a telegram chat) and the camera.
+the user (through a telegram chat) and the camera. Also contains the
+`BotConfig` class that implements a conversational sequence in order to
+configure the bot behavior.
 """
 import inspect
 import logging
@@ -55,7 +57,7 @@ class Bot:
                 dispatcher.add_handler(self.command_handler(command, method))
 
         # Register configuration menu
-        dispatcher.add_handler(BotConfig.get_config(self))
+        dispatcher.add_handler(BotConfig.get_config_handler(self))
 
     def command_handler(
             self,
@@ -164,6 +166,14 @@ class Bot:
             update: Update,
             _: CallbackContext
     ) -> None:
+        """
+        Shows a help message listing all available commands.
+
+        This command also sends the custom keyboard to the user.
+
+        Args:
+            update: The update to be handled.
+        """
         update.message.reply_text(
             text="With this bot you can request that a photo or video be "
                  "taken with the cam|. It also has a surveillance mode that "
@@ -360,6 +370,15 @@ class Bot:
 
 
 class BotConfig:
+    """
+    Class for bot configuration process implementation.
+
+    This class contains all constants and static methods needed to implements
+    a conversational sequence with the user in order to the bot behavior will
+    be configured.
+
+    It doesn't have any instance method so it doesn't need to be instantiated.
+    """
     # Configuration variables
     TIMESTAMP = 'timestamp'
     OD_VIDEO_DURATION = 'od_video_duration'
@@ -389,7 +408,19 @@ class BotConfig:
     CURRENT_VARIABLE, RETURN_HANDLER, ENABLE, DISABLE = map(chr, range(10, 14))
 
     @staticmethod
-    def start(update: Update, _: CallbackContext) -> chr:
+    def _main_menu(update: Update, _: CallbackContext) -> chr:
+        """
+        Creates the main menu and send it to the user.
+
+        This menu links to the general configuration and to the surveillance
+        mode configuration.
+
+        Args:
+            update: The update to be handled.
+
+        Returns:
+            The state MAIN_MENU.
+        """
         text = 'This is the main menu'
         buttons = [
             [InlineKeyboardButton(
@@ -418,7 +449,16 @@ class BotConfig:
         return BotConfig.MAIN_MENU
 
     @staticmethod
-    def general_config(update: Update, _: CallbackContext) -> chr:
+    def _general_config(update: Update, _: CallbackContext) -> chr:
+        """
+        Creates the menu for general configuration and send it to the user.
+
+        Args:
+            update: The update to be handled.
+
+        Returns:
+            The state GENERAL_CONFIG.
+        """
         text = 'General configuration'
         buttons = [
             [InlineKeyboardButton(
@@ -448,7 +488,17 @@ class BotConfig:
         return BotConfig.GENERAL_CONFIG
 
     @staticmethod
-    def surveillance_config(update: Update, _: CallbackContext) -> chr:
+    def _surveillance_config(update: Update, _: CallbackContext) -> chr:
+        """
+        Creates the menu for the surveillance mode configuration and send it
+        to the user.
+
+        Args:
+            update: The update to be handled.
+
+        Returns:
+            The state SURVEILLANCE_CONFIG.
+        """
         text = 'Surveillance Mode configuration'
         buttons = [
             [InlineKeyboardButton(
@@ -484,109 +534,177 @@ class BotConfig:
     # General configuration options.
 
     @staticmethod
-    def change_timestamp(
+    def _change_timestamp(
             update: Update,
             context: CallbackContext
     ) -> chr:
+        """
+        Prepares all required data to request the TIMESTAMP configuration to
+        the user.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+
+        Returns:
+            The state BOOLEAN_INPUT through `_boolean_question` method.
+        """
         timestamp = context.bot_data[BotConfig.TIMESTAMP]
 
         current_status = 'Enabled' if timestamp else 'Disabled'
         text = f'Change time stamping\n' \
                f'Current value: *{current_status}*'
 
-        return BotConfig.boolean_question(
+        return BotConfig._boolean_question(
             update,
             context,
             text,
             BotConfig.TIMESTAMP,
-            BotConfig.general_config
+            BotConfig._general_config
         )
 
     @staticmethod
-    def change_od_video_duration(
+    def _change_od_video_duration(
             update: Update,
             context: CallbackContext
     ) -> chr:
+        """
+        Prepares all required data to request the OD_VIDEO_DURATION
+        configuration to the user.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+
+        Returns:
+            The state INTEGER_INPUT through `_integer_question` method.
+        """
         od_video_duration = context.bot_data[BotConfig.OD_VIDEO_DURATION]
 
         text = f'Change On Demand video duration\n' \
                f'Current value: *{od_video_duration}*'
 
-        return BotConfig.integer_question(
+        return BotConfig._integer_question(
             update,
             context,
             text,
             BotConfig.OD_VIDEO_DURATION,
-            BotConfig.general_config
+            BotConfig._general_config
         )
 
     # Surveillance mode configuration options.
 
     @staticmethod
-    def change_srv_video_duration(
+    def _change_srv_video_duration(
             update: Update,
             context: CallbackContext
     ) -> chr:
+        """
+        Prepares all required data to request the SRV_VIDEO_DURATION
+        configuration to the user.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+
+        Returns:
+            The state INTEGER_INPUT through `_integer_question` method.
+        """
         srv_video_duration = context.bot_data[BotConfig.SRV_VIDEO_DURATION]
 
         text = f'Change Surveillance video duration\n' \
                f'Current value: *{srv_video_duration}*'
 
-        return BotConfig.integer_question(
+        return BotConfig._integer_question(
             update,
             context,
             text,
             BotConfig.SRV_VIDEO_DURATION,
-            BotConfig.surveillance_config
+            BotConfig._surveillance_config
         )
 
     @staticmethod
-    def change_srv_picture_interval(
+    def _change_srv_picture_interval(
             update: Update,
             context: CallbackContext
     ) -> chr:
+        """
+        Prepares all required data to request the SRV_PICTURE_INTERVAL
+        configuration to the user.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+
+        Returns:
+            The state INTEGER_INPUT through `_integer_question` method.
+        """
         srv_picture_interval = context.bot_data[BotConfig.SRV_PICTURE_INTERVAL]
 
         text = f'Change Surveillance picture interval\n' \
                f'Current value: *{srv_picture_interval}*'
 
-        return BotConfig.integer_question(
+        return BotConfig._integer_question(
             update,
             context,
             text,
             BotConfig.SRV_PICTURE_INTERVAL,
-            BotConfig.surveillance_config
+            BotConfig._surveillance_config
         )
 
     @staticmethod
-    def change_motion_contours(
+    def _change_motion_contours(
             update: Update,
             context: CallbackContext
     ) -> chr:
+        """
+        Prepares all required data to request the SRV_MOTION_CONTOURS
+        configuration to the user.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+
+        Returns:
+            The state BOOLEAN_INPUT through `_boolean_question` method.
+        """
         motion_contours = context.bot_data[BotConfig.SRV_MOTION_CONTOURS]
 
         current_status = 'Enabled' if motion_contours else 'Disabled'
         text = f'Change motion contours\n' \
                f'Current value: *{current_status}*'
 
-        return BotConfig.boolean_question(
+        return BotConfig._boolean_question(
             update,
             context,
             text,
             BotConfig.SRV_MOTION_CONTOURS,
-            BotConfig.surveillance_config
+            BotConfig._surveillance_config
         )
 
     # Questions helpers.
 
     @staticmethod
-    def boolean_question(
+    def _boolean_question(
             update: Update,
             context: CallbackContext,
             text: str,
             current_variable: chr,
             return_handler: chr
     ) -> chr:
+        """
+        Builds a boolean question to send it to the user using received data.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+            text: Message to be shown to the users.
+            current_variable: Variable to be set.
+            return_handler: Handler to be called with the user response.
+
+        Returns:
+            The state BOOLEAN_INPUT.
+        """
         context.user_data[BotConfig.CURRENT_VARIABLE] = current_variable
         context.user_data[BotConfig.RETURN_HANDLER] = return_handler
 
@@ -612,13 +730,26 @@ class BotConfig:
         return BotConfig.BOOLEAN_INPUT
 
     @staticmethod
-    def integer_question(
+    def _integer_question(
             update: Update,
             context: CallbackContext,
             text: str,
             current_variable: chr,
             return_handler: chr
     ) -> chr:
+        """
+        Builds a integer question to send it to the user using received data.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+            text: Message to be shown to the users.
+            current_variable: Variable to be set.
+            return_handler: Handler to be called with the user response.
+
+        Returns:
+            The state INTEGER_INPUT.
+        """
         context.user_data[BotConfig.CURRENT_VARIABLE] = current_variable
         context.user_data[BotConfig.RETURN_HANDLER] = return_handler
 
@@ -633,7 +764,18 @@ class BotConfig:
     # Input handlers.
 
     @staticmethod
-    def boolean_input(update: Update, context: CallbackContext) -> chr:
+    def _boolean_input(update: Update, context: CallbackContext) -> chr:
+        """
+        Receive a boolean input from the user and saves the value into
+        corresponding variable.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+
+        Returns:
+            The execution of the previously stored handler.
+        """
         context.bot_data[
             context.user_data[BotConfig.CURRENT_VARIABLE]
         ] = update.callback_query.data == BotConfig.ENABLE
@@ -641,7 +783,19 @@ class BotConfig:
         return context.user_data[BotConfig.RETURN_HANDLER](update, context)
 
     @staticmethod
-    def integer_input(update: Update, context: CallbackContext) -> chr:
+    def _integer_input(update: Update, context: CallbackContext) -> chr:
+        """
+        Receive a integer input from the user, validates it, and saves the
+        value into corresponding variable.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+
+        Returns:
+            The execution of the previously stored handler or the state
+                INTEGER_INPUT in case of validation error.
+        """
         try:
             value = int(update.message.text)
             assert value > 0
@@ -659,7 +813,16 @@ class BotConfig:
         return context.user_data[BotConfig.RETURN_HANDLER](update, context)
 
     @staticmethod
-    def end(update: Update, _: CallbackContext) -> int:
+    def _end(update: Update, _: CallbackContext) -> int:
+        """
+        Handler to end the configuration sequence.
+
+        Args:
+            update: The update to be handled.
+
+        Returns:
+            The state END.
+        """
         if update.callback_query:
             update.callback_query.answer()
             update.callback_query.edit_message_text(text='Configuration done')
@@ -669,69 +832,78 @@ class BotConfig:
         return BotConfig.END
 
     @staticmethod
-    def get_config(bot: Bot) -> ConversationHandler:
+    def get_config_handler(bot: Bot) -> ConversationHandler:
+        """
+        Generates the conversation handler for whole configuration process.
+
+        Args:
+            bot: The parent `Bot` instance.
+
+        Returns:
+            The instantiated `ConversationHandler`.
+        """
         main_handler = ConversationHandler(
-            entry_points=[bot.command_handler('config', BotConfig.start)],
+            entry_points=[bot.command_handler('config', BotConfig._main_menu)],
             states={
                 BotConfig.MAIN_MENU: [
                     CallbackQueryHandler(
-                        BotConfig.general_config,
+                        BotConfig._general_config,
                         pattern='^' + str(BotConfig.GENERAL_CONFIG) + '$'
                     ),
                     CallbackQueryHandler(
-                        BotConfig.surveillance_config,
+                        BotConfig._surveillance_config,
                         pattern='^' + str(BotConfig.SURVEILLANCE_CONFIG) + '$'
                     ),
                     CallbackQueryHandler(
-                        BotConfig.end,
+                        BotConfig._end,
                         pattern='^' + str(BotConfig.END) + '$'
                     )
                 ],
                 BotConfig.GENERAL_CONFIG: [
                     CallbackQueryHandler(
-                        BotConfig.change_timestamp,
+                        BotConfig._change_timestamp,
                         pattern='^'
                         + str(BotConfig.CHANGE_TIMESTAMP)
                         + '$'
                     ),
                     CallbackQueryHandler(
-                        BotConfig.change_od_video_duration,
+                        BotConfig._change_od_video_duration,
                         pattern='^'
                         + str(BotConfig.CHANGE_OD_VIDEO_DURATION)
                         + '$'
                     ),
                     CallbackQueryHandler(
-                        BotConfig.start,
+                        BotConfig._main_menu,
                         pattern='^' + str(BotConfig.END) + '$'
                     )
                 ],
                 BotConfig.SURVEILLANCE_CONFIG: [
                     CallbackQueryHandler(
-                        BotConfig.change_srv_video_duration,
+                        BotConfig._change_srv_video_duration,
                         pattern='^'
                         + str(BotConfig.CHANGE_SRV_VIDEO_DURATION)
                         + '$'
                     ),
                     CallbackQueryHandler(
-                        BotConfig.change_srv_picture_interval,
+                        BotConfig._change_srv_picture_interval,
                         pattern='^'
                         + str(BotConfig.CHANGE_SRV_PICTURE_INTERVAL)
                         + '$'
                     ),
                     CallbackQueryHandler(
-                        BotConfig.change_motion_contours,
+                        BotConfig._change_motion_contours,
                         pattern='^'
                         + str(BotConfig.CHANGE_SRV_MOTION_CONTOURS)
                         + '$'
                     ),
                     CallbackQueryHandler(
-                        BotConfig.start,
+                        BotConfig._main_menu,
                         pattern='^' + str(BotConfig.END) + '$'
                     )
                 ],
                 BotConfig.BOOLEAN_INPUT: [
                     CallbackQueryHandler(
-                        BotConfig.boolean_input,
+                        BotConfig._boolean_input,
                         pattern='^'
                         + str(BotConfig.ENABLE)
                         + '$|^'
@@ -742,17 +914,23 @@ class BotConfig:
                 BotConfig.INTEGER_INPUT: [
                     MessageHandler(
                         Filters.text,
-                        BotConfig.integer_input
+                        BotConfig._integer_input
                     )
                 ]
             },
-            fallbacks=[bot.command_handler('stop_config', BotConfig.end)],
+            fallbacks=[bot.command_handler('stop_config', BotConfig._end)],
         )
 
         return main_handler
 
     @staticmethod
     def ensure_defaults(context: CallbackContext) -> None:
+        """
+        Creates non-existent variables and populates with default values.
+
+        Args:
+            context: The context object for the update.
+        """
         if BotConfig.TIMESTAMP not in context.bot_data:
             context.bot_data[BotConfig.TIMESTAMP] = True
 
