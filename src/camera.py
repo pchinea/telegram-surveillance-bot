@@ -59,13 +59,12 @@ class CameraDevice:
                 self._frame = frame
                 self._frame_count += 1
 
-    def read(self, with_timestamp=True) -> Tuple[int, np.ndarray]:
+    def read(self, timestamp=True) -> Tuple[int, np.ndarray]:
         """
         Returns the latest stored frame.
 
         Args:
-            with_timestamp: If True a timestamp is printed on the returned
-                frame.
+            timestamp: If True a timestamp is printed on the returned frame.
 
         Returns:
             A tuple with the unique identifier of the frame and the frame
@@ -74,7 +73,7 @@ class CameraDevice:
         with self._lock:
             frame_id = self._frame_count
             frame = self._frame.copy()
-        if with_timestamp:
+        if timestamp:
             self._add_timestamp(frame)
         return frame_id, frame
 
@@ -153,19 +152,24 @@ class Camera:
         """Stops camera devices."""
         self._camera.stop()
 
-    def get_photo(self) -> IO:
+    def get_photo(self, timestamp=True) -> IO:
         """
         Takes a single shot.
+
+        Args:
+            timestamp: Adds time stamping on the photo.
 
         Returns:
             File object with the photo taken.
         """
-        return BytesIO(cv2.imencode(".jpg", self._camera.read()[1])[1])
+        frame = self._camera.read(timestamp=timestamp)[1]
+        return BytesIO(cv2.imencode(".jpg", frame)[1])
 
-    def get_video(self, seconds=5) -> IO:
+    def get_video(self, timestamp=True, seconds=5) -> IO:
         """Takes a video.
 
         Args:
+            timestamp: Adds time stamping on the video.
             seconds: Video duration.
 
         Returns:
@@ -176,7 +180,7 @@ class Camera:
 
         processed = []
         while len(processed) < n_frames:
-            frame_id, frame = self._camera.read()
+            frame_id, frame = self._camera.read(timestamp=timestamp)
             if frame_id not in processed:
                 processed.append(frame_id)
                 video_writer.write(frame)
@@ -228,13 +232,21 @@ class Camera:
         (x, y, width, height) = cv2.boundingRect(contour)
         cv2.rectangle(frame, (x, y), (x + width, y + height), (0, 255, 0), 1)
 
-    def motion_detection(self) -> Iterator[Tuple[bool, int, np.ndarray]]:
+    def _motion_detection(
+            self,
+            timestamp=True,
+            contours=True
+    ) -> Iterator[Tuple[bool, int, np.ndarray]]:
         """
         Executes motion detection operation during surveillance mode.
 
         This generator grabs frames continuously and search for motion
         yielding every frame grabbed even motion is detected or not. In
         frames with motion detected the contour is drawn on it.
+
+        Args:
+            timestamp: Adds time stamping on the frames.
+            contours: Draws motion contours on the frames.
 
         Yields:
             A tuple with three values.
@@ -247,7 +259,7 @@ class Camera:
         last_frame_id = 0
 
         while self._surveillance_mode:
-            frame_id, frame = self._camera.read()
+            frame_id, frame = self._camera.read(timestamp=timestamp)
             if frame_id == last_frame_id:
                 continue
             last_frame_id = frame_id
@@ -259,13 +271,14 @@ class Camera:
                 previous_frame = gray
                 continue
 
-            contours = self._get_motion_contours(previous_frame, gray)
+            motion_contours = self._get_motion_contours(previous_frame, gray)
 
             detected = False
-            for contour in contours:
+            for contour in motion_contours:
                 if cv2.contourArea(contour) < 2000:
                     continue
-                self._draw_contours(frame, contour)
+                if contours:
+                    self._draw_contours(frame, contour)
                 detected = True
 
             previous_frame = gray
@@ -273,8 +286,10 @@ class Camera:
 
     def surveillance_start(
             self,
+            timestamp=True,
             video_seconds=30,
-            picture_seconds=5
+            picture_seconds=5,
+            contours=True
     ) -> Iterator[Dict[str, Any]]:
         """
         Starts surveillance mode, waiting for motion detection.
@@ -285,8 +300,10 @@ class Camera:
         goes back to the initial state.
 
         Args:
+            timestamp: Adds time stamping on the frames.
             video_seconds: Video duration.
             picture_seconds: Time elapsed between pictures.
+            contours: Draws motion contours on the frames.
 
         Yields:
             A dict with three possible configurations
@@ -301,7 +318,10 @@ class Camera:
         file: Optional[IO] = None
         video_writer: Optional[cv2.VideoWriter] = None
 
-        for detected, frame_id, frame in self.motion_detection():
+        for detected, frame_id, frame in self._motion_detection(
+                timestamp=timestamp,
+                contours=contours
+        ):
             if status == Camera.STATE_IDLE:
                 if detected:
                     yield {'detected': True}

@@ -56,7 +56,7 @@ class Bot:
                 command = name.replace('_command_', '')
                 dispatcher.add_handler(self.command_handler(command, method))
 
-        # Register configuration menu
+        # Registers configuration menu
         dispatcher.add_handler(BotConfig.get_config_handler(self))
 
     def command_handler(
@@ -215,14 +215,17 @@ class Bot:
             update: The update to be handled.
             context: The context object for the update.
         """
-        # Upload photo
+        # Retrieves configuration
+        timestamp = context.bot_data[BotConfig.TIMESTAMP]
+
+        # Uploads photo
         context.bot.send_chat_action(
             chat_id=update.message.chat_id,
             action=ChatAction.UPLOAD_PHOTO
         )
         context.bot.send_photo(
             chat_id=update.message.chat_id,
-            photo=self.camera.get_photo()
+            photo=self.camera.get_photo(timestamp=timestamp)
         )
 
     def _command_get_video(
@@ -239,14 +242,23 @@ class Bot:
             update: The update to be handled.
             context: The context object for the update.
         """
-        # Record video
+        # Retrieves configuration
+        timestamp = context.bot_data[BotConfig.TIMESTAMP]
+        seconds = context.bot_data[BotConfig.OD_VIDEO_DURATION]
+
+        # Sends waiting message
+        message = update.message.reply_text(
+            f'Recording a {seconds} seconds video...'
+        )
+
+        # Records video
         context.bot.send_chat_action(
             chat_id=update.message.chat_id,
             action=ChatAction.RECORD_VIDEO
         )
-        video = self.camera.get_video()
+        video = self.camera.get_video(timestamp=timestamp, seconds=seconds)
 
-        # Upload video
+        # Uploads video
         context.bot.send_chat_action(
             chat_id=update.message.chat_id,
             action=ChatAction.UPLOAD_VIDEO
@@ -254,6 +266,12 @@ class Bot:
         context.bot.send_video(
             chat_id=update.message.chat_id,
             video=video
+        )
+
+        # Deletes waiting message
+        context.bot.delete_message(
+            chat_id=update.message.chat_id,
+            message_id=message.message_id
         )
 
     @run_async
@@ -275,23 +293,39 @@ class Bot:
             update: The update to be handled.
             context: The context object for the update.
         """
-        # Check if surveillance is already started.
+        # Check if surveillance is already started
         if self.camera.is_surveillance_active:
             update.message.reply_text('Error! Surveillance is already started')
             self.logger.warning("Surveillance already started")
             return
 
-        # Starts surveillance.
+        # Retrieve configuration
+        timestamp = context.bot_data[BotConfig.TIMESTAMP]
+        video_seconds = context.bot_data[BotConfig.SRV_VIDEO_DURATION]
+        picture_interval = context.bot_data[BotConfig.SRV_PICTURE_INTERVAL]
+        motion_contours = context.bot_data[BotConfig.SRV_MOTION_CONTOURS]
+
+        # Starts surveillance
+        waiting_message = None
         self.logger.info('Surveillance mode start')
         update.message.reply_text(
             "Surveillance mode started",
             reply_markup=self._get_reply_keyboard(True)
         )
-        for data in self.camera.surveillance_start():
+        for data in self.camera.surveillance_start(
+                timestamp=timestamp,
+                video_seconds=video_seconds,
+                picture_seconds=picture_interval,
+                contours=motion_contours
+        ):
             if 'detected' in data:
                 update.message.reply_text(
                     '*MOTION DETECTED|!*'.replace('|', '\\'),
                     parse_mode=ParseMode.MARKDOWN_V2
+                )
+                waiting_message = update.message.reply_text(
+                    f'Recording a {video_seconds} seconds video and taking '
+                    f'{video_seconds // picture_interval} photos...'
                 )
                 context.bot.send_chat_action(
                     chat_id=update.message.chat_id,
@@ -320,7 +354,18 @@ class Bot:
                     chat_id=update.message.chat_id,
                     video=data['video']
                 )
+                if waiting_message:
+                    context.bot.delete_message(
+                        chat_id=update.message.chat_id,
+                        message_id=waiting_message.message_id
+                    )
+                    waiting_message = None
 
+        if waiting_message:
+            context.bot.delete_message(
+                chat_id=update.message.chat_id,
+                message_id=waiting_message.message_id
+            )
         update.message.reply_text(
             "Surveillance mode stopped",
             reply_markup=self._get_reply_keyboard()
