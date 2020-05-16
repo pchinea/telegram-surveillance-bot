@@ -9,7 +9,7 @@ configure the bot behavior.
 import inspect
 import logging
 from functools import wraps
-from typing import Callable, Union, Optional, Any
+from typing import Callable, Union, Optional, Any, List
 
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode, \
     InlineKeyboardButton, InlineKeyboardMarkup
@@ -177,7 +177,7 @@ class Bot:
         update.message.reply_text(
             text="With this bot you can request that a photo or video be "
                  "taken with the cam|. It also has a surveillance mode that "
-                 "will warn when it detects movement and will start "
+                 "will warn you when it detects movement and will start "
                  "recording a video, and during the recording, photos will "
                  "be taken and sent periodically|.\n"
                  "\n"
@@ -195,6 +195,7 @@ class Bot:
                  "\n"
                  "*General commands*\n"
                  "/config |- Invokes configuration menu\n"
+                 "/stop|_config |- Abort configuration sequence\n"
                  "/help |- Shows this help text\n"
                  "".replace('|', '\\'),
             parse_mode=ParseMode.MARKDOWN_V2,
@@ -583,7 +584,15 @@ class BotConfig:
         Returns:
             The state MAIN_MENU.
         """
-        text = 'This is the main menu'
+        text = "*Surveillance Telegram Bot Configuration*\n" \
+               "\n" \
+               "You can change here some parameters for the bot behavior|. " \
+               "If surveillance mode is running any changes here will not " \
+               "take effect on it until it is restarted|.\n" \
+               "\n" \
+               "To abort type /stop|_config|.\n" \
+               "\n" \
+               "Select section:".replace('|', '\\')
         buttons = [
             [InlineKeyboardButton(
                 text='General configuration',
@@ -598,30 +607,40 @@ class BotConfig:
                 callback_data=str(BotConfig.END)
             )]
         ]
-        keyboard = InlineKeyboardMarkup(buttons)
 
-        if update.message:
-            update.message.reply_text(text=text, reply_markup=keyboard)
-        else:
-            update.callback_query.edit_message_text(
-                text=text,
-                reply_markup=keyboard
-            )
+        BotConfig._render_menu(update, text, buttons)
 
         return BotConfig.MAIN_MENU
 
     @staticmethod
-    def _general_config(update: Update, _: CallbackContext) -> chr:
+    def _general_config(update: Update, context: CallbackContext) -> chr:
         """
         Creates the menu for general configuration and send it to the user.
 
         Args:
             update: The update to be handled.
+            context: The context object for the update.
 
         Returns:
             The state GENERAL_CONFIG.
         """
-        text = 'General configuration'
+        timestamp = context.bot_data[BotConfig.TIMESTAMP]
+        video_duration = context.bot_data[BotConfig.OD_VIDEO_DURATION]
+
+        timestamp_str = 'Enabled' if timestamp else 'Disabled'
+
+        text = f"*General configuration*\n" \
+               f"\n" \
+               f"__Timestamp__:\n" \
+               f" |- _Description_: Print a timestamp on every photo or" \
+               f" video taken|.\n" \
+               f" |- _Current value_: *{timestamp_str}*\n" \
+               f"\n" \
+               f"__On Demand video duration__:\n" \
+               f" |- _Description_: Duration of the video taken with " \
+               f"/get|_video command|.\n" \
+               f" |- _Current value_: *{video_duration} seconds*" \
+               f"".replace('|', '\\')
         buttons = [
             [InlineKeyboardButton(
                 text='Timestamp',
@@ -636,32 +655,47 @@ class BotConfig:
                 callback_data=str(BotConfig.END)
             )]
         ]
-        keyboard = InlineKeyboardMarkup(buttons)
 
-        if update.message:
-            update.message.reply_text(text=text, reply_markup=keyboard)
-        else:
-            update.callback_query.answer()
-            update.callback_query.edit_message_text(
-                text=text,
-                reply_markup=keyboard
-            )
+        BotConfig._render_menu(update, text, buttons)
 
         return BotConfig.GENERAL_CONFIG
 
     @staticmethod
-    def _surveillance_config(update: Update, _: CallbackContext) -> chr:
+    def _surveillance_config(update: Update, context: CallbackContext) -> chr:
         """
         Creates the menu for the surveillance mode configuration and send it
         to the user.
 
         Args:
             update: The update to be handled.
+            context: The context object for the update.
 
         Returns:
             The state SURVEILLANCE_CONFIG.
         """
-        text = 'Surveillance Mode configuration'
+        video_duration = context.bot_data[BotConfig.SRV_VIDEO_DURATION]
+        picture_interval = context.bot_data[BotConfig.SRV_PICTURE_INTERVAL]
+        motion_contours = context.bot_data[BotConfig.SRV_MOTION_CONTOURS]
+
+        motion_contours_str = 'Enabled' if motion_contours else 'Disabled'
+
+        text = f"*Surveillance Mode configuration*\n" \
+               f"\n" \
+               f"__Video duration__:\n" \
+               f" |- _Description_: Duration of the video taken when motion " \
+               f"is detected|.\n" \
+               f" |- _Current value_: *{video_duration} seconds*\n" \
+               f"\n" \
+               f"__Picture Interval__:\n" \
+               f" |- _Description_: Interval between photos taken after " \
+               f"motion is detected|.\n" \
+               f" |- _Current value_: *{picture_interval} seconds*\n" \
+               f"\n" \
+               f"__Draw motion contours__:\n" \
+               f" |- _Description_: Draws a rectangle around the objects in " \
+               f"motion|.\n" \
+               f" |- _Current value_: *{motion_contours_str}*" \
+               f"".replace('|', '\\')
         buttons = [
             [InlineKeyboardButton(
                 text='Video duration',
@@ -680,18 +714,41 @@ class BotConfig:
                 callback_data=str(BotConfig.END)
             )]
         ]
+
+        BotConfig._render_menu(update, text, buttons)
+
+        return BotConfig.SURVEILLANCE_CONFIG
+
+    @staticmethod
+    def _render_menu(
+            update: Update,
+            text: str,
+            buttons: List[List[InlineKeyboardButton]]
+    ) -> None:
+        """
+        Builds the inline keyboard for the menu and sends all to the user.
+
+        Args:
+            update: The update to be handled.
+            text: Text for the menu caption.
+            buttons: Array of button rows,
+                each represented by an Array of InlineKeyboardButton objects.
+        """
         keyboard = InlineKeyboardMarkup(buttons)
 
         if update.message:
-            update.message.reply_text(text=text, reply_markup=keyboard)
+            update.message.reply_text(
+                text=text,
+                reply_markup=keyboard,
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
         else:
             update.callback_query.answer()
             update.callback_query.edit_message_text(
                 text=text,
-                reply_markup=keyboard
+                reply_markup=keyboard,
+                parse_mode=ParseMode.MARKDOWN_V2
             )
-
-        return BotConfig.SURVEILLANCE_CONFIG
 
     # General configuration options.
 
@@ -713,9 +770,13 @@ class BotConfig:
         """
         timestamp = context.bot_data[BotConfig.TIMESTAMP]
 
-        current_status = 'Enabled' if timestamp else 'Disabled'
-        text = f'Change time stamping\n' \
-               f'Current value: *{current_status}*'
+        timestamp_str = 'Enabled' if timestamp else 'Disabled'
+
+        text = f'*Timestamp*\n' \
+               f'\n' \
+               f'Current state: *{timestamp_str}*\n' \
+               f'\n' \
+               f'Select state for time stamping:'
 
         return BotConfig._boolean_question(
             update,
@@ -741,10 +802,13 @@ class BotConfig:
         Returns:
             The state INTEGER_INPUT through `_integer_question` method.
         """
-        od_video_duration = context.bot_data[BotConfig.OD_VIDEO_DURATION]
+        video_duration = context.bot_data[BotConfig.OD_VIDEO_DURATION]
 
-        text = f'Change On Demand video duration\n' \
-               f'Current value: *{od_video_duration}*'
+        text = f'*On Demand video duration*\n' \
+               f'\n' \
+               f'Current value: *{video_duration}*\n' \
+               f'\n' \
+               f'Type value for video duration:'
 
         return BotConfig._integer_question(
             update,
@@ -772,10 +836,13 @@ class BotConfig:
         Returns:
             The state INTEGER_INPUT through `_integer_question` method.
         """
-        srv_video_duration = context.bot_data[BotConfig.SRV_VIDEO_DURATION]
+        video_duration = context.bot_data[BotConfig.SRV_VIDEO_DURATION]
 
-        text = f'Change Surveillance video duration\n' \
-               f'Current value: *{srv_video_duration}*'
+        text = f'*Surveillance video duration*\n' \
+               f'\n' \
+               f'Current value: *{video_duration}*\n' \
+               f'\n' \
+               f'Type value for video duration:'
 
         return BotConfig._integer_question(
             update,
@@ -801,10 +868,13 @@ class BotConfig:
         Returns:
             The state INTEGER_INPUT through `_integer_question` method.
         """
-        srv_picture_interval = context.bot_data[BotConfig.SRV_PICTURE_INTERVAL]
+        picture_interval = context.bot_data[BotConfig.SRV_PICTURE_INTERVAL]
 
-        text = f'Change Surveillance picture interval\n' \
-               f'Current value: *{srv_picture_interval}*'
+        text = f'*Surveillance picture interval*\n' \
+               f'\n' \
+               f'Current value: *{picture_interval}*\n' \
+               f'\n' \
+               f'Type value for picture interval:'
 
         return BotConfig._integer_question(
             update,
@@ -832,9 +902,13 @@ class BotConfig:
         """
         motion_contours = context.bot_data[BotConfig.SRV_MOTION_CONTOURS]
 
-        current_status = 'Enabled' if motion_contours else 'Disabled'
-        text = f'Change motion contours\n' \
-               f'Current value: *{current_status}*'
+        motion_contours_str = 'Enabled' if motion_contours else 'Disabled'
+
+        text = f'*Motion contours*\n' \
+               f'\n' \
+               f'Current state: *{motion_contours_str}*\n' \
+               f'\n' \
+               f'Select state for motion contours:'
 
         return BotConfig._boolean_question(
             update,
@@ -990,8 +1064,8 @@ class BotConfig:
 
         if update.callback_query:
             update.callback_query.answer()
-            update.callback_query.edit_message_text(text='Configuration done')
+            update.callback_query.edit_message_text(text='Configuration done.')
         else:
-            update.message.reply_text('Configuration canceled')
+            update.message.reply_text('Configuration canceled.')
 
         return BotConfig.END
