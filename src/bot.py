@@ -408,6 +408,123 @@ class BotConfig:
     CURRENT_VARIABLE, RETURN_HANDLER, ENABLE, DISABLE = map(chr, range(10, 14))
 
     @staticmethod
+    def get_config_handler(bot: Bot) -> ConversationHandler:
+        """
+        Generates the conversation handler for whole configuration process.
+
+        Args:
+            bot: The parent `Bot` instance.
+
+        Returns:
+            The instantiated `ConversationHandler`.
+        """
+        main_handler = ConversationHandler(
+            entry_points=[bot.command_handler('config', BotConfig._main_menu)],
+            states={
+                BotConfig.MAIN_MENU: [
+                    CallbackQueryHandler(
+                        BotConfig._general_config,
+                        pattern='^' + str(BotConfig.GENERAL_CONFIG) + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig._surveillance_config,
+                        pattern='^' + str(BotConfig.SURVEILLANCE_CONFIG) + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig._end,
+                        pattern='^' + str(BotConfig.END) + '$'
+                    )
+                ],
+                BotConfig.GENERAL_CONFIG: [
+                    CallbackQueryHandler(
+                        BotConfig._change_timestamp,
+                        pattern='^'
+                        + str(BotConfig.CHANGE_TIMESTAMP)
+                        + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig._change_od_video_duration,
+                        pattern='^'
+                        + str(BotConfig.CHANGE_OD_VIDEO_DURATION)
+                        + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig._main_menu,
+                        pattern='^' + str(BotConfig.END) + '$'
+                    )
+                ],
+                BotConfig.SURVEILLANCE_CONFIG: [
+                    CallbackQueryHandler(
+                        BotConfig._change_srv_video_duration,
+                        pattern='^'
+                        + str(BotConfig.CHANGE_SRV_VIDEO_DURATION)
+                        + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig._change_srv_picture_interval,
+                        pattern='^'
+                        + str(BotConfig.CHANGE_SRV_PICTURE_INTERVAL)
+                        + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig._change_motion_contours,
+                        pattern='^'
+                        + str(BotConfig.CHANGE_SRV_MOTION_CONTOURS)
+                        + '$'
+                    ),
+                    CallbackQueryHandler(
+                        BotConfig._main_menu,
+                        pattern='^' + str(BotConfig.END) + '$'
+                    )
+                ],
+                BotConfig.BOOLEAN_INPUT: [
+                    CallbackQueryHandler(
+                        BotConfig._boolean_input,
+                        pattern='^'
+                        + str(BotConfig.ENABLE)
+                        + '$|^'
+                        + str(BotConfig.DISABLE)
+                        + '$'
+                    )
+                ],
+                BotConfig.INTEGER_INPUT: [
+                    MessageHandler(
+                        Filters.text,
+                        BotConfig._integer_input
+                    )
+                ]
+            },
+            fallbacks=[bot.command_handler('stop_config', BotConfig._end)],
+        )
+
+        return main_handler
+
+    @staticmethod
+    def ensure_defaults(context: CallbackContext) -> None:
+        """
+        Creates non-existent variables and populates with default values.
+
+        Args:
+            context: The context object for the update.
+        """
+        if BotConfig.TIMESTAMP not in context.bot_data:
+            context.bot_data[BotConfig.TIMESTAMP] = True
+
+        if BotConfig.OD_VIDEO_DURATION not in context.bot_data:
+            context.bot_data[BotConfig.OD_VIDEO_DURATION] = 5
+
+        if BotConfig.SRV_VIDEO_DURATION not in context.bot_data:
+            context.bot_data[BotConfig.SRV_VIDEO_DURATION] = 30
+
+        if BotConfig.SRV_PICTURE_INTERVAL not in context.bot_data:
+            context.bot_data[BotConfig.SRV_PICTURE_INTERVAL] = 5
+
+        if BotConfig.SRV_MOTION_CONTOURS not in context.bot_data:
+            context.bot_data[BotConfig.SRV_MOTION_CONTOURS] = True
+
+    # Menus
+
+    @staticmethod
     def _main_menu(update: Update, _: CallbackContext) -> chr:
         """
         Creates the main menu and send it to the user.
@@ -813,16 +930,19 @@ class BotConfig:
         return context.user_data[BotConfig.RETURN_HANDLER](update, context)
 
     @staticmethod
-    def _end(update: Update, _: CallbackContext) -> int:
+    def _end(update: Update, context: CallbackContext) -> int:
         """
         Handler to end the configuration sequence.
 
         Args:
             update: The update to be handled.
+            context: The context object for the update.
 
         Returns:
             The state END.
         """
+        context.user_data.clear()
+
         if update.callback_query:
             update.callback_query.answer()
             update.callback_query.edit_message_text(text='Configuration done')
@@ -830,118 +950,3 @@ class BotConfig:
             update.message.reply_text('Configuration canceled')
 
         return BotConfig.END
-
-    @staticmethod
-    def get_config_handler(bot: Bot) -> ConversationHandler:
-        """
-        Generates the conversation handler for whole configuration process.
-
-        Args:
-            bot: The parent `Bot` instance.
-
-        Returns:
-            The instantiated `ConversationHandler`.
-        """
-        main_handler = ConversationHandler(
-            entry_points=[bot.command_handler('config', BotConfig._main_menu)],
-            states={
-                BotConfig.MAIN_MENU: [
-                    CallbackQueryHandler(
-                        BotConfig._general_config,
-                        pattern='^' + str(BotConfig.GENERAL_CONFIG) + '$'
-                    ),
-                    CallbackQueryHandler(
-                        BotConfig._surveillance_config,
-                        pattern='^' + str(BotConfig.SURVEILLANCE_CONFIG) + '$'
-                    ),
-                    CallbackQueryHandler(
-                        BotConfig._end,
-                        pattern='^' + str(BotConfig.END) + '$'
-                    )
-                ],
-                BotConfig.GENERAL_CONFIG: [
-                    CallbackQueryHandler(
-                        BotConfig._change_timestamp,
-                        pattern='^'
-                        + str(BotConfig.CHANGE_TIMESTAMP)
-                        + '$'
-                    ),
-                    CallbackQueryHandler(
-                        BotConfig._change_od_video_duration,
-                        pattern='^'
-                        + str(BotConfig.CHANGE_OD_VIDEO_DURATION)
-                        + '$'
-                    ),
-                    CallbackQueryHandler(
-                        BotConfig._main_menu,
-                        pattern='^' + str(BotConfig.END) + '$'
-                    )
-                ],
-                BotConfig.SURVEILLANCE_CONFIG: [
-                    CallbackQueryHandler(
-                        BotConfig._change_srv_video_duration,
-                        pattern='^'
-                        + str(BotConfig.CHANGE_SRV_VIDEO_DURATION)
-                        + '$'
-                    ),
-                    CallbackQueryHandler(
-                        BotConfig._change_srv_picture_interval,
-                        pattern='^'
-                        + str(BotConfig.CHANGE_SRV_PICTURE_INTERVAL)
-                        + '$'
-                    ),
-                    CallbackQueryHandler(
-                        BotConfig._change_motion_contours,
-                        pattern='^'
-                        + str(BotConfig.CHANGE_SRV_MOTION_CONTOURS)
-                        + '$'
-                    ),
-                    CallbackQueryHandler(
-                        BotConfig._main_menu,
-                        pattern='^' + str(BotConfig.END) + '$'
-                    )
-                ],
-                BotConfig.BOOLEAN_INPUT: [
-                    CallbackQueryHandler(
-                        BotConfig._boolean_input,
-                        pattern='^'
-                        + str(BotConfig.ENABLE)
-                        + '$|^'
-                        + str(BotConfig.DISABLE)
-                        + '$'
-                    )
-                ],
-                BotConfig.INTEGER_INPUT: [
-                    MessageHandler(
-                        Filters.text,
-                        BotConfig._integer_input
-                    )
-                ]
-            },
-            fallbacks=[bot.command_handler('stop_config', BotConfig._end)],
-        )
-
-        return main_handler
-
-    @staticmethod
-    def ensure_defaults(context: CallbackContext) -> None:
-        """
-        Creates non-existent variables and populates with default values.
-
-        Args:
-            context: The context object for the update.
-        """
-        if BotConfig.TIMESTAMP not in context.bot_data:
-            context.bot_data[BotConfig.TIMESTAMP] = True
-
-        if BotConfig.OD_VIDEO_DURATION not in context.bot_data:
-            context.bot_data[BotConfig.OD_VIDEO_DURATION] = 5
-
-        if BotConfig.SRV_VIDEO_DURATION not in context.bot_data:
-            context.bot_data[BotConfig.SRV_VIDEO_DURATION] = 30
-
-        if BotConfig.SRV_PICTURE_INTERVAL not in context.bot_data:
-            context.bot_data[BotConfig.SRV_PICTURE_INTERVAL] = 5
-
-        if BotConfig.SRV_MOTION_CONTOURS not in context.bot_data:
-            context.bot_data[BotConfig.SRV_MOTION_CONTOURS] = True
