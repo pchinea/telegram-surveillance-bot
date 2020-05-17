@@ -105,12 +105,12 @@ class Bot:
         """
         self.camera.start()
         self.updater.start_polling()
-        self.logger.info("Surveillance Telegram Bot started")
+        self.logger.info("Surveillance Bot started")
 
         self.updater.idle()
 
         self.camera.stop()
-        self.logger.info("Surveillance Telegram Bot stopped")
+        self.logger.info("Surveillance Bot stopped")
 
     def _command_start(self, update: Update, context: CallbackContext) -> None:
         """
@@ -123,7 +123,7 @@ class Bot:
             context: The context object for the update.
         """
         update.message.reply_text(
-            text="Welcome to the *Surveillance Telegram Bot*",
+            text="Welcome to the *Surveillance Bot*",
             parse_mode=ParseMode.MARKDOWN_V2
         )
         self._command_help(update, context)
@@ -181,8 +181,8 @@ class Bot:
                  "These are the available commands:\n"
                  "\n"
                  "*On Demand commands*\n"
-                 "/get|_photo |- Grabs a picture from the cam\n"
-                 "/get|_video |- Grabs a video from the cam\n"
+                 "/get|_photo |- Takes a picture from the cam\n"
+                 "/get|_video |- Takes a video from the cam\n"
                  "\n"
                  "*Surveillance Mode commands*\n"
                  "/surveillance|_start |- Starts surveillance mode\n"

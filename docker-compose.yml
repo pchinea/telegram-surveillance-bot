@@ -2,8 +2,8 @@ version: '3'
 
 services:
   surveillance-telegram-bot:
-    container_name: surveillance-telegram-bot
-    image: surveillance-telegram-bot
+    container_name: telegram-surveillance-bot
+    image: telegram-surveillance-bot
     devices:
       - /dev/video0:/dev/video0
     environment:
