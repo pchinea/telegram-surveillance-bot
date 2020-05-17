@@ -11,5 +11,6 @@ services:
       - BOT_API_TOKEN
       - AUTHORIZED_USER
       # Optional variables
+      - PERSISTENCE
       - LOG_LEVEL
       - BOT_LOG_LEVEL

@@ -7,10 +7,12 @@ the user (through a telegram chat) and the camera.
 import inspect
 import logging
 from functools import wraps
+from pathlib import Path
 from typing import Callable, Union, Optional, Any
 
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
-from telegram.ext import Updater, CommandHandler, CallbackContext, run_async
+from telegram.ext import Updater, CommandHandler, CallbackContext, run_async, \
+    PicklePersistence
 
 from bot_config import BotConfig
 from camera import Camera
@@ -35,6 +37,7 @@ class Bot:
             self,
             token: str,
             username: str,
+            persistence: Union[str, PicklePersistence, None] = None,
             log_level: Union[int, str, None] = None
     ):
         self.camera = Camera()
@@ -43,7 +46,17 @@ class Bot:
             self.logger.setLevel(log_level)
         self.authorized_user = username
 
-        self.updater = Updater(token=token, use_context=True)
+        if persistence:
+            Path('persistence').mkdir(exist_ok=True)
+            persistence = PicklePersistence(
+                filename="persistence/config.pickle"
+            )
+
+        self.updater = Updater(
+            token=token,
+            persistence=persistence,
+            use_context=True
+        )
 
         dispatcher = self.updater.dispatcher
 
