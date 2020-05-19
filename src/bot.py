@@ -6,6 +6,7 @@ the user (through a telegram chat) and the camera.
 """
 import inspect
 import logging
+import sys
 from functools import wraps
 from pathlib import Path
 from typing import Callable, Union, Optional, Any
@@ -15,7 +16,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, run_async, \
     PicklePersistence
 
 from bot_config import BotConfig
-from camera import Camera
+from camera import Camera, CameraConnectionError, CodecNotAvailable
 
 HandlerType = Callable[[Update, CallbackContext], Any]
 
@@ -40,10 +41,21 @@ class Bot:
             persistence: Union[str, PicklePersistence, None] = None,
             log_level: Union[int, str, None] = None
     ):
-        self.camera = Camera()
         self.logger = logging.getLogger(__name__)
         if log_level:
             self.logger.setLevel(log_level)
+
+        try:
+            self.camera = Camera()
+        except CameraConnectionError:
+            self.logger.critical("Error! Can not connect to the camera.")
+            sys.exit(1)
+        except CodecNotAvailable:
+            self.logger.critical(
+                "Error! There are no suitable video codec available."
+            )
+            sys.exit(2)
+
         self.authorized_user = username
 
         if persistence:

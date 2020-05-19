@@ -12,7 +12,7 @@ from telegram.ext import ConversationHandler, CallbackQueryHandler, \
     MessageHandler, Filters, CallbackContext
 
 if TYPE_CHECKING:
-    from bot import Bot
+    from bot import Bot  # pylint: disable=cyclic-import
 
 
 class BotConfig:

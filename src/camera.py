@@ -17,6 +17,22 @@ import cv2
 import numpy as np
 
 
+# Exceptions
+
+class CameraError(Exception):
+    """Base class for Camera related errors."""
+
+
+class CameraConnectionError(CameraError):
+    """Raised when connection with the camera fails."""
+
+
+class CodecNotAvailable(CameraError):
+    """Raised when a suitable video codec is not available."""
+
+
+# Classes
+
 class CameraDevice:
     """
     Class for camera hardware handling.
@@ -29,6 +45,8 @@ class CameraDevice:
     """
     def __init__(self, cam_id=0):
         self._device = cv2.VideoCapture(cam_id)
+        if not self._device.isOpened():
+            raise CameraConnectionError
         self._frame = self._device.read()[1]
 
         self._frame_count = 0
@@ -140,6 +158,9 @@ class Camera:
         self._camera = CameraDevice(cam_id)
         self._surveillance_mode = False
         self._tempdir = TemporaryDirectory()
+        self._codec = self.get_supported_codec()
+        if not self._codec:
+            raise CodecNotAvailable
 
     def start(self):
         """
@@ -378,8 +399,31 @@ class Camera:
         path = os.path.join(self._tempdir.name, filename)
         writer = cv2.VideoWriter(
             path,
-            cv2.VideoWriter_fourcc(*'mp4v'),
+            cv2.VideoWriter_fourcc(*self._codec),
             self._camera.fps,
             self._camera.frame_size
         )
         return path, writer
+
+    def get_supported_codec(self) -> Optional[str]:
+        """
+        Get the best codec supported by the encoding backend.
+
+        This method creates a test file to check the codecs availability.
+
+        Returns:
+            The fourCC string for the codec or None if there are no available
+                codec.
+        """
+        path = os.path.join(self._tempdir.name, 'test_codec.mp4')
+        for codec in ['avc1', 'mp4v']:
+            writer = cv2.VideoWriter(
+                path,
+                cv2.VideoWriter_fourcc(*codec),
+                1,
+                (2, 2)
+            )
+            if writer.isOpened():
+                writer.release()
+                return codec
+        return None
