@@ -5,9 +5,10 @@ This module implements both camera management and a top layer for related
 operations such as motion detection or output file generation. All
 camera and image operations are performed using OpenCV.
 """
+import os
 from datetime import datetime
 from io import BytesIO
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
 from threading import Thread, Lock
 from time import time
 from typing import IO, Tuple, Dict, Any, Optional, List, Iterator
@@ -138,6 +139,7 @@ class Camera:
     def __init__(self, cam_id=0):
         self._camera = CameraDevice(cam_id)
         self._surveillance_mode = False
+        self._tempdir = TemporaryDirectory()
 
     def start(self):
         """
@@ -175,7 +177,7 @@ class Camera:
         Returns:
             File object with the video taken.
         """
-        file, video_writer = self._create_video_file('on_demand')
+        path, video_writer = self._create_video_file('on_demand')
         n_frames = self._camera.fps * seconds
 
         processed = []
@@ -186,7 +188,7 @@ class Camera:
                 video_writer.write(frame)
 
         video_writer.release()
-        return file
+        return open(path, 'rb')
 
     @staticmethod
     def _get_motion_contours(
@@ -315,7 +317,7 @@ class Camera:
         fps = self._camera.fps
         processed = []
         n_frames = 0
-        file: Optional[IO] = None
+        path: Optional[str] = None
         video_writer: Optional[cv2.VideoWriter] = None
 
         for detected, frame_id, frame in self._motion_detection(
@@ -326,7 +328,7 @@ class Camera:
                 if detected:
                     yield {'detected': True}
                     status = Camera.STATE_MOTION_DETECTED
-                    file, video_writer = self._create_video_file('on_motion')
+                    path, video_writer = self._create_video_file('on_motion')
                     n_frames = fps * video_seconds
                     processed = [frame_id]
                     video_writer.write(frame)
@@ -343,7 +345,7 @@ class Camera:
                         video_writer.write(frame)
                 else:
                     video_writer.release()
-                    yield {'video': file}
+                    yield {'video': open(path, 'rb')}
                     status = Camera.STATE_IDLE
 
     def surveillance_stop(self):
@@ -358,7 +360,7 @@ class Camera:
     def _create_video_file(
             self,
             event_type: str
-    ) -> Tuple[IO, cv2.VideoWriter]:
+    ) -> Tuple[str, cv2.VideoWriter]:
         """
         Initializes a temporary video file and a video writer.
 
@@ -367,17 +369,17 @@ class Camera:
             event_type: Event type string for filename generation.
 
         Returns:
-            A tuple with the file object and the OpenCV video writer object.
+            A tuple with the file path and the OpenCV video writer object.
         """
         now_str = str(datetime.now())[:-7]
         table = str.maketrans(': ', '-_')
-        prefix = now_str.translate(table) + f'_{event_type}_'
+        filename = now_str.translate(table) + f'_{event_type}.mp4'
 
-        file = NamedTemporaryFile(prefix=prefix, suffix='.mp4')
+        path = os.path.join(self._tempdir.name, filename)
         writer = cv2.VideoWriter(
-            file.name,
+            path,
             cv2.VideoWriter_fourcc(*'mp4v'),
             self._camera.fps,
             self._camera.frame_size
         )
-        return file, writer
+        return path, writer
