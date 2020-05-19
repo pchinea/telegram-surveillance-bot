@@ -13,7 +13,7 @@ from typing import Callable, Union, Optional, Any
 
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext, run_async, \
-    PicklePersistence
+    PicklePersistence, Dispatcher
 
 from bot_config import BotConfig
 from camera import Camera, CameraConnectionError, CodecNotAvailable
@@ -70,7 +70,7 @@ class Bot:
             use_context=True
         )
 
-        dispatcher = self.updater.dispatcher
+        dispatcher: Dispatcher = self.updater.dispatcher
 
         # Registers commands in the dispatcher
         for name, method in inspect.getmembers(self, inspect.ismethod):
@@ -80,6 +80,9 @@ class Bot:
 
         # Registers configuration menu
         dispatcher.add_handler(BotConfig.get_config_handler(self))
+
+        # Register error handler
+        dispatcher.add_error_handler(self._error)
 
     def command_handler(
             self,
@@ -136,6 +139,26 @@ class Bot:
 
         self.camera.stop()
         self.logger.info("Surveillance Bot stopped")
+
+    def _error(self, update: Update, context: CallbackContext) -> None:
+        """
+        Logs Errors caused by updates.
+
+        Args:
+            update: The update to be handled.
+            context: The context object for the update.
+        """
+        self.logger.warning(
+            'Update "%s" caused error "%s"',
+            update,
+            context.error
+        )
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="*ERROR|!* Unknown bot internal error, see server logs "
+                 "for more information|.".replace('|', '\\'),
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
 
     def _command_start(self, update: Update, context: CallbackContext) -> None:
         """
