@@ -7,6 +7,11 @@ surveillance. Photos and videos can be taken from the camera and sent via
 Telegram instantly. Those actions can be triggered by commands sent by the
 user or when motion is detected.
 
+All files in this project are covered under the `GPLv3 LICENSE
+<http://www.gnu.org/licenses/gpl.html>`_, if you modify this project in any
+way you MUST publish the changes you made and submit your contribution to the
+community under the same license.
+
 Features
 ********
 
