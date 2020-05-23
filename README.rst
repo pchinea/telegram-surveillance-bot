@@ -83,7 +83,7 @@ This application generates MP4 video files, if H264 codec is available it will
 use it to generate smaller files.
 
 The OpenCV library provided by the PyPi package (installed with pip)
-`don't have H264 support
+`doesn't have H264 support
 <https://github.com/skvark/opencv-python/issues/81#issuecomment-376166468>`_
 so if you wish to use H264 encoding you have to do a manual build or use a
 precompiled library with H264 support (some distributions, like Ubuntu, have
@@ -100,7 +100,7 @@ provided, running this command::
 
     docker build -t telegram-surveillance-bot .
 
-This docker image have H264 support and creates a volume to store persistence
+This docker image has H264 support and creates a volume to store persistence
 data (if this option is activated). The image will be created with UTC timezone
 by default (so photo and video timestamp will use this timezone) it can be
 overridden mounting ``/etc/localtime`` file (see `docker-compose.yml
