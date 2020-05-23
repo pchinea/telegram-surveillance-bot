@@ -186,9 +186,10 @@ class BotConfig:
         """
         text = "*Surveillance Telegram Bot Configuration*\n" \
                "\n" \
-               "You can change here some parameters for the bot behavior|. " \
-               "If surveillance mode is running any changes here will not " \
-               "take effect on it until it is restarted|.\n" \
+               "Here you can modify some bot behavior parameters|. \n" \
+               "\n" \
+               "While the mode is running it does not allow you any change " \
+               "unless you restart it|.\n" \
                "\n" \
                "To abort type /stop|_config|.\n" \
                "\n" \
