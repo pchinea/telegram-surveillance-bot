@@ -6,6 +6,7 @@ the user (through a telegram chat) and the camera.
 """
 import inspect
 import logging
+import os
 import sys
 from functools import wraps
 from pathlib import Path
@@ -45,11 +46,20 @@ class Bot:
         if log_level:
             self.logger.setLevel(log_level)
 
+        if not token:
+            self.logger.critical("Error! Missing BOT_API_KEY configuration")
+            sys.exit(1)
+        if not username:
+            self.logger.critical(
+                "Error! Missing AUTHORIZED_USER configuration"
+            )
+            sys.exit(1)
+
         try:
             self.camera = Camera()
         except CameraConnectionError:
             self.logger.critical("Error! Can not connect to the camera.")
-            sys.exit(1)
+            sys.exit(2)
         except CodecNotAvailable:
             self.logger.critical(
                 "Error! There are no suitable video codec available."
@@ -59,7 +69,9 @@ class Bot:
         self.authorized_user = username
 
         if persistence:
-            Path('persistence').mkdir(exist_ok=True)
+            Path(
+                os.path.join(os.path.dirname(__file__), 'persistence')
+            ).mkdir(exist_ok=True)
             persistence = PicklePersistence(
                 filename="persistence/config.pickle"
             )
