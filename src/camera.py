@@ -53,7 +53,7 @@ class CameraDevice:
         self._start_time = 0.0
 
         self._running = False
-        self._thread = Thread(target=self._update)
+        self._thread: Optional[Thread] = None
         self._lock = Lock()
 
     def start(self):
@@ -62,6 +62,7 @@ class CameraDevice:
             self._frame_count = 0
             self._start_time = time()
             self._running = True
+            self._thread = Thread(target=self._update, daemon=True)
             self._thread.start()
 
     def _update(self):
@@ -99,7 +100,8 @@ class CameraDevice:
     def stop(self):
         """Stops frame grabbing process."""
         self._running = False
-        self._thread.join()
+        if self._thread:
+            self._thread.join()
 
     @property
     def fps(self) -> float:
@@ -135,6 +137,10 @@ class CameraDevice:
         size = 1
         cv2.putText(frame, now, org, font, size, (0, 0, 0), 2)
         cv2.putText(frame, now, org, font, size, (255, 255, 255), 1)
+
+    def __del__(self):
+        """Releases video capture before object is destroyed."""
+        self._device.release()
 
 
 class Camera:
