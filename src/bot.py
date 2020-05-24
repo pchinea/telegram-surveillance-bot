@@ -41,7 +41,7 @@ class Bot:
             username: str,
             persistence: Union[str, PicklePersistence, None] = None,
             log_level: Union[int, str, None] = None
-    ):
+    ) -> None:
         self.logger = logging.getLogger(__name__)
         if log_level:
             self.logger.setLevel(log_level)
@@ -135,7 +135,7 @@ class Bot:
 
         return CommandHandler(command, wrapped)
 
-    def start(self):
+    def start(self) -> None:
         """
         Starts the bot execution and waits to clean up before exit.
 

@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 
 
-def main():
+def main() -> None:
     """Surveillance Telegram Bot start up function."""
     bot = Bot(
         token=BOT_API_TOKEN,
