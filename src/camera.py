@@ -169,16 +169,11 @@ class Camera:
             raise CodecNotAvailable
 
     def start(self) -> None:
-        """
-        Starts camera device.
-
-        Note:
-            The camera can only be started once during the instance lifecycle.
-        """
+        """ Starts camera device."""
         self._camera.start()
 
     def stop(self) -> None:
-        """Stops camera devices."""
+        """Stops camera device."""
         self._camera.stop()
 
     def get_photo(self, timestamp=True) -> IO:
