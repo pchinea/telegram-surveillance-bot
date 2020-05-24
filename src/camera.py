@@ -43,7 +43,7 @@ class CameraDevice:
     Args:
         cam_id: ID of the video capturing device to open.
     """
-    def __init__(self, cam_id=0):
+    def __init__(self, cam_id=0) -> None:
         self._device = cv2.VideoCapture(cam_id)
         if not self._device.isOpened():
             raise CameraConnectionError
@@ -56,7 +56,7 @@ class CameraDevice:
         self._thread: Optional[Thread] = None
         self._lock = Lock()
 
-    def start(self):
+    def start(self) -> None:
         """Starts frame grabbing process."""
         if not self._running:
             self._frame_count = 0
@@ -65,7 +65,7 @@ class CameraDevice:
             self._thread = Thread(target=self._update, daemon=True)
             self._thread.start()
 
-    def _update(self):
+    def _update(self) -> None:
         """
         Updates data with latest frame available.
 
@@ -97,7 +97,7 @@ class CameraDevice:
             self._add_timestamp(frame)
         return frame_id, frame
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops frame grabbing process."""
         self._running = False
         if self._thread:
@@ -129,7 +129,7 @@ class CameraDevice:
         return width, height
 
     @staticmethod
-    def _add_timestamp(frame: np.ndarray):
+    def _add_timestamp(frame: np.ndarray) -> None:
         """Prints timestamp on the given frame."""
         now = str(datetime.now())[:-7]
         org = (1, frame.shape[0] - 3)
@@ -138,7 +138,7 @@ class CameraDevice:
         cv2.putText(frame, now, org, font, size, (0, 0, 0), 2)
         cv2.putText(frame, now, org, font, size, (255, 255, 255), 1)
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Releases video capture before object is destroyed."""
         self._device.release()
 
@@ -160,7 +160,7 @@ class Camera:
     STATE_MOTION_DETECTED = 'motion_detected'
     """After motion have been detected."""
 
-    def __init__(self, cam_id=0):
+    def __init__(self, cam_id=0) -> None:
         self._camera = CameraDevice(cam_id)
         self._surveillance_mode = False
         self._tempdir = TemporaryDirectory()
@@ -168,7 +168,7 @@ class Camera:
         if not self._codec:
             raise CodecNotAvailable
 
-    def start(self):
+    def start(self) -> None:
         """
         Starts camera device.
 
@@ -177,7 +177,7 @@ class Camera:
         """
         self._camera.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops camera devices."""
         self._camera.stop()
 
@@ -247,7 +247,7 @@ class Camera:
         )[-2]
 
     @staticmethod
-    def _draw_contours(frame: np.ndarray, contour: np.ndarray):
+    def _draw_contours(frame: np.ndarray, contour: np.ndarray) -> None:
         """
         Draws a rectangle on the frame that marks a contour.
 
@@ -375,7 +375,7 @@ class Camera:
                     yield {'video': open(path, 'rb')}
                     status = Camera.STATE_IDLE
 
-    def surveillance_stop(self):
+    def surveillance_stop(self) -> None:
         """Stops surveillance mode."""
         self._surveillance_mode = False
 
