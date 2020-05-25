@@ -1,4 +1,7 @@
 -r requirements.txt
 pylint
+pytest
+pytest-cov
+pytest-mock
 sphinx
 sphinx-rtd-theme
