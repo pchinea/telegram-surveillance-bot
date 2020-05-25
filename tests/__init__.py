@@ -1,3 +1,6 @@
+"""
+Test suite package for Surveillance Bot.
+"""
 import sys
 import os
 

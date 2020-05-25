@@ -1,20 +1,36 @@
+"""
+Test suite for Camera class testing.
+"""
 from hashlib import md5
 from time import sleep
 
 import pytest
+import pytest_mock
 
 from src.camera import Camera, CodecNotAvailable
 from tests.opencv_mock import mock_video_capture, mock_bad_video_writer, \
     FRAMES_MD5
 
 
-def test_init_ok(mocker):
+def test_init_ok(mocker: pytest_mock.mocker) -> None:
+    """
+    Test Camera instance construction.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, reader=False)
 
     Camera()
 
 
-def test_init_codec_not_available(mocker):
+def test_init_codec_not_available(mocker: pytest_mock.mocker) -> None:
+    """
+    Test Camera instantiation when codec is not available.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, reader=False)
     mock_bad_video_writer(mocker)
 
@@ -22,7 +38,13 @@ def test_init_codec_not_available(mocker):
         Camera()
 
 
-def test_start_and_stop(mocker):
+def test_start_and_stop(mocker: pytest_mock.mocker) -> None:
+    """
+    Test camera process starting and stopping.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, reader=False)
 
     camera = Camera()
@@ -30,7 +52,13 @@ def test_start_and_stop(mocker):
     camera.stop()
 
 
-def test_get_photo(mocker):
+def test_get_photo(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests photo taking method.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker)
 
     camera = Camera()
@@ -47,7 +75,13 @@ def test_get_photo(mocker):
     camera.stop()
 
 
-def test_get_video(mocker):
+def test_get_video(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests video taking method.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker)
 
     camera = Camera()
@@ -61,7 +95,13 @@ def test_get_video(mocker):
     camera.stop()
 
 
-def test_surveillance_mode(mocker):
+def test_surveillance_mode(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests surveillance mode process.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker)
 
     camera = Camera()
@@ -81,7 +121,18 @@ def test_surveillance_mode(mocker):
     camera.stop()
 
 
-def test_detect_duplicated_frames(mocker):
+def test_detect_duplicated_frames(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests duplicated frames detection.
+
+    Frame requesting can be faster than device frame grabbing, so the same
+    frame can be retrieved more than once. This test simulates a very low
+    framerate and then tries to detect motion (two consecutive frames are
+    different).
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, fps=5)
 
     camera = Camera()

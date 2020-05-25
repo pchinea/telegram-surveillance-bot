@@ -1,26 +1,48 @@
+"""
+Test suite for CameraDevice class testing.
+"""
 import time
 
 import numpy as np
 import pytest
+import pytest_mock
 
 from src.camera import CameraDevice, CameraConnectionError
 from tests.opencv_mock import FPS, FRAME_SIZE, mock_video_capture
 
 
-def test_init_ok(mocker):
+def test_init_ok(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests CameraDevice instance construction.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, reader=False)
 
     CameraDevice()
 
 
-def test_init_camera_connection_error(mocker):
+def test_init_camera_connection_error(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests CameraDevice instantiation when device is not reachable.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, reader=False, opened=False)
 
     with pytest.raises(CameraConnectionError):
         CameraDevice()
 
 
-def test_start_and_stop(mocker):
+def test_start_and_stop(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests camera device starting and stopping.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, reader=False)
 
     camera_device = CameraDevice()
@@ -28,7 +50,13 @@ def test_start_and_stop(mocker):
     camera_device.stop()
 
 
-def test_frame_size(mocker):
+def test_frame_size(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests frame size value.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker)
 
     camera_device = CameraDevice()
@@ -37,7 +65,15 @@ def test_frame_size(mocker):
     camera_device.stop()
 
 
-def test_fps(mocker):
+def test_fps(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests fps value.
+
+    The testing has +/- 5 fps of tolerance.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker)
 
     camera_device = CameraDevice()
@@ -47,7 +83,13 @@ def test_fps(mocker):
     camera_device.stop()
 
 
-def test_read(mocker):
+def test_read(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests frame reading method.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker)
 
     camera_device = CameraDevice()
