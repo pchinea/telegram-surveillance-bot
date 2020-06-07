@@ -125,7 +125,7 @@ class Bot:
                     command,
                     update.effective_chat.username
                 )
-                update.message.reply_text("Unauthorized")
+                update.message.reply_text(text="Unauthorized")
                 return None
 
             BotConfig.ensure_defaults(context)
@@ -305,7 +305,7 @@ class Bot:
 
         # Sends waiting message
         message = update.message.reply_text(
-            f'Recording a {seconds} seconds video...'
+            text=f'Recording a {seconds} seconds video...'
         )
 
         # Records video
@@ -352,7 +352,9 @@ class Bot:
         """
         # Check if surveillance is already started
         if self.camera.is_surveillance_active:
-            update.message.reply_text('Error! Surveillance is already started')
+            update.message.reply_text(
+                text='Error! Surveillance is already started'
+            )
             self.logger.warning("Surveillance already started")
             return
 
@@ -366,7 +368,7 @@ class Bot:
         waiting_message = None
         self.logger.info('Surveillance mode start')
         update.message.reply_text(
-            "Surveillance mode started",
+            text="Surveillance mode started",
             reply_markup=self._get_reply_keyboard(True)
         )
         for data in self.camera.surveillance_start(
@@ -377,12 +379,13 @@ class Bot:
         ):
             if 'detected' in data:
                 update.message.reply_text(
-                    '*MOTION DETECTED|!*'.replace('|', '\\'),
+                    text='*MOTION DETECTED|!*'.replace('|', '\\'),
                     parse_mode=ParseMode.MARKDOWN_V2
                 )
                 waiting_message = update.message.reply_text(
-                    f'Recording a {video_seconds} seconds video and taking '
-                    f'{video_seconds // picture_interval} photos...'
+                    text=f'Recording a {video_seconds} seconds video and '
+                         f'taking {video_seconds // picture_interval} '
+                         f'photos...'
                 )
                 context.bot.send_chat_action(
                     chat_id=update.message.chat_id,
@@ -424,7 +427,7 @@ class Bot:
                 message_id=waiting_message.message_id
             )
         update.message.reply_text(
-            "Surveillance mode stopped",
+            text="Surveillance mode stopped",
             reply_markup=self._get_reply_keyboard()
         )
         self.logger.info('Surveillance mode stop')
@@ -444,7 +447,9 @@ class Bot:
         """
         # Checks if surveillance is not running.
         if not self.camera.is_surveillance_active:
-            update.message.reply_text("Error! Surveillance is not started")
+            update.message.reply_text(
+                text="Error! Surveillance is not started"
+            )
             self.logger.warning("Surveillance is not started")
             return
 
@@ -466,6 +471,6 @@ class Bot:
             update: The update to be handled.
         """
         if self.camera.is_surveillance_active:
-            update.message.reply_text("Surveillance mode is active")
+            update.message.reply_text(text="Surveillance mode is active")
         else:
-            update.message.reply_text("Surveillance mode is not active")
+            update.message.reply_text(text="Surveillance mode is not active")
