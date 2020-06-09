@@ -36,6 +36,9 @@ def _get_reader_mock(fps=FPS) -> Callable[[], Tuple[bool, np.ndarray]]:
 
     Args:
         fps: Sets framerate for reading simulation.
+
+    Returns:
+        The mocked read method.
     """
     index = 0
     last = time.time() - 1  # don't wait for the first frame

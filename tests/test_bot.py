@@ -19,6 +19,12 @@ from tests.telegram_bot_mock import mock_telegram_updater, \
 
 
 def test_init_without_token(caplog: _pytest.logging.caplog) -> None:
+    """
+    Tests Bot instance when is called without token.
+
+    Args:
+        caplog: Fixture for log messages capturing.
+    """
     with pytest.raises(SystemExit) as error:
         Bot(token='', username='')
     assert len(caplog.records) == 1
@@ -30,6 +36,12 @@ def test_init_without_token(caplog: _pytest.logging.caplog) -> None:
 
 
 def test_init_without_username(caplog: _pytest.logging.caplog) -> None:
+    """
+    Tests Bot instance when is called without username.
+
+    Args:
+        caplog: Fixture for log messages capturing.
+    """
     with pytest.raises(SystemExit) as error:
         Bot(token='FAKE_TOKEN', username='')
     assert len(caplog.records) == 1
@@ -44,6 +56,13 @@ def test_init_without_camera(
         caplog: _pytest.logging.caplog,
         mocker: pytest_mock.mocker
 ) -> None:
+    """
+    Tests Bot instantiation when device is not reachable.
+
+    Args:
+        caplog: Fixture for log messages capturing.
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, reader=False, opened=False)
     with pytest.raises(SystemExit) as error:
         Bot(token='FAKE_TOKEN', username='FAKE_USER')
@@ -59,6 +78,13 @@ def test_init_without_available_codec(
         caplog: _pytest.logging.caplog,
         mocker: pytest_mock.mocker
 ) -> None:
+    """
+    Tests Bot instantiation when codec is not available.
+
+    Args:
+        caplog: Fixture for log messages capturing.
+        mocker: Fixture for object mocking.
+    """
     mock_video_capture(mocker, reader=False)
     mock_bad_video_writer(mocker)
     with pytest.raises(SystemExit) as error:
@@ -72,6 +98,12 @@ def test_init_without_available_codec(
 
 
 def test_init_logging_level(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests Bot instantiation with logging level modification.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker, reader=False)
 
@@ -88,6 +120,13 @@ def test_persistence_dir(
         tmp_path: _pytest.tmpdir.tmp_path,
         mocker: pytest_mock.mocker
 ) -> None:
+    """
+    Tests Bot instantiation passing a directory for data persistence.
+
+    Args:
+        tmp_path: Fixture for temporary path handling.
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker, reader=False)
 
@@ -106,6 +145,13 @@ def test_start_and_stop(
         caplog: _pytest.logging.caplog,
         mocker: pytest_mock.mocker
 ) -> None:
+    """
+    Tests Bot process starting and stopping.
+
+    Args:
+        caplog: Fixture for log messages capturing.
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker, reader=False)
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
@@ -123,6 +169,13 @@ def test_command_wrapper(
         caplog: _pytest.logging.caplog,
         mocker: pytest_mock.mocker
 ) -> None:
+    """
+    Tests bot commands wrapping.
+
+    Args:
+        caplog: Fixture for log messages capturing.
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker, reader=False)
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
@@ -153,6 +206,13 @@ def test_error_handler(
         caplog: _pytest.logging.caplog,
         mocker: pytest_mock.mocker
 ) -> None:
+    """
+    Tests error handler method.
+
+    Args:
+        caplog: Fixture for log messages capturing.
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker, reader=False)
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
@@ -173,6 +233,12 @@ def test_error_handler(
 
 
 def test_start_command(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests "start" command invocation.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker, reader=False)
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
@@ -198,6 +264,12 @@ def test_start_command(mocker: pytest_mock.mocker) -> None:
 
 
 def test_get_photo_command(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests "get_photo" command invocation.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker)
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
@@ -217,6 +289,12 @@ def test_get_photo_command(mocker: pytest_mock.mocker) -> None:
 
 
 def test_get_video_command(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests "get_video" command invocation.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker)
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
@@ -237,6 +315,12 @@ def test_get_video_command(mocker: pytest_mock.mocker) -> None:
 
 
 def test_surveillance_start_command(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests "surveillance_start" command invocation.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker)
     threads = mock_run_async(mocker)
@@ -273,6 +357,12 @@ def test_surveillance_start_command(mocker: pytest_mock.mocker) -> None:
 
 
 def test_surveillance_errors(mocker: pytest_mock.mocker) -> None:
+    """
+    Tests errors in "start" command invocation.
+
+    Args:
+        mocker: Fixture for object mocking.
+    """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker)
     threads = mock_run_async(mocker)

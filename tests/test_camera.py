@@ -14,7 +14,7 @@ from tests.opencv_mock import mock_video_capture, mock_bad_video_writer, \
 
 def test_init_ok(mocker: pytest_mock.mocker) -> None:
     """
-    Test Camera instance construction.
+    Tests Camera instance construction.
 
     Args:
         mocker: Fixture for object mocking.
@@ -26,7 +26,7 @@ def test_init_ok(mocker: pytest_mock.mocker) -> None:
 
 def test_init_codec_not_available(mocker: pytest_mock.mocker) -> None:
     """
-    Test Camera instantiation when codec is not available.
+    Tests Camera instantiation when codec is not available.
 
     Args:
         mocker: Fixture for object mocking.
@@ -40,7 +40,7 @@ def test_init_codec_not_available(mocker: pytest_mock.mocker) -> None:
 
 def test_start_and_stop(mocker: pytest_mock.mocker) -> None:
     """
-    Test camera process starting and stopping.
+    Tests camera process starting and stopping.
 
     Args:
         mocker: Fixture for object mocking.
