@@ -24,7 +24,7 @@ def main() -> None:
     bot = Bot(
         token=BOT_API_TOKEN,
         username=AUTHORIZED_USER,
-        persistence=PERSISTENCE,
+        persistence_dir=PERSISTENCE,
         log_level=BOT_LOG_LEVEL
     )
     bot.start()
