@@ -61,10 +61,10 @@ The application is configured using this environment variables:
     <https://telegram.org/faq#q-what-are-usernames-how-do-i-get-one>`_
     (without @) of the user authorized to interact with the bot.
 
-  - ``PERSISTENCE``
+  - ``PERSISTENCE_DIR``
 
-    If this variable is set to ``1`` the bot configuration (set via telegram
-    chat) will persist on disk.
+    If this variable is set the bot configuration (set via telegram chat) will
+    persist on disk into a file placed in this directory.
 
   - ``LOG_LEVEL``
 

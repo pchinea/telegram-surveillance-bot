@@ -7,7 +7,7 @@ from bot import Bot
 # Configuration environment variables.
 AUTHORIZED_USER = os.environ.get('AUTHORIZED_USER')
 BOT_API_TOKEN = os.environ.get('BOT_API_TOKEN')
-PERSISTENCE = os.environ.get('PERSISTENCE', None)
+PERSISTENCE_DIR = os.environ.get('PERSISTENCE_DIR', None)
 LOG_LEVEL = os.environ.get('LOG_LEVEL', logging.WARNING)
 BOT_LOG_LEVEL = os.environ.get('BOT_LOG_LEVEL', None)
 
@@ -24,7 +24,7 @@ def main() -> None:
     bot = Bot(
         token=BOT_API_TOKEN,
         username=AUTHORIZED_USER,
-        persistence_dir=PERSISTENCE,
+        persistence_dir=PERSISTENCE_DIR,
         log_level=BOT_LOG_LEVEL
     )
     bot.start()
