@@ -157,10 +157,10 @@ def test_start_and_stop(
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
     bot.start()
     assert len(caplog.records) == 2
-    record: logging.LogRecord = caplog.records[0]
+    record = caplog.records[0]
     assert record.levelno == logging.INFO
     assert 'started' in record.message
-    record: logging.LogRecord = caplog.records[1]
+    record = caplog.records[1]
     assert record.levelno == logging.INFO
     assert 'stopped' in record.message
 

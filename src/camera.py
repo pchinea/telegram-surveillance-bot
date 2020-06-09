@@ -202,7 +202,7 @@ class Camera:
         path, video_writer = self._create_video_file('on_demand')
         n_frames = self._camera.fps * seconds
 
-        processed = []
+        processed: List[int] = []
         while len(processed) < n_frames:
             frame_id, frame = self._camera.read(timestamp=timestamp)
             if frame_id not in processed:
@@ -339,8 +339,8 @@ class Camera:
         fps = self._camera.fps
         processed = []
         n_frames = 0
-        path: Optional[str] = None
-        video_writer: Optional[cv2.VideoWriter] = None
+        path = ''
+        video_writer: cv2.VideoWriter = cv2.VideoWriter()
 
         for detected, frame_id, frame in self._motion_detection(
                 timestamp=timestamp,

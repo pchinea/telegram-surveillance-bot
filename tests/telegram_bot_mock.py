@@ -2,7 +2,7 @@
 Helper module for bot related mocking.
 """
 from threading import Thread
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Dict
 from unittest.mock import MagicMock
 
 import pytest_mock
@@ -12,7 +12,7 @@ class DispatcherMock(MagicMock):
     """Mock object to simulate a telegram bot dispatcher."""
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.commands = {}
+        self.commands: Dict[str, Callable] = {}
 
     def add_handler(self, handler) -> None:
         """

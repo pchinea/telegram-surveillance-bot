@@ -5,8 +5,8 @@ import os
 from bot import Bot
 
 # Configuration environment variables.
-AUTHORIZED_USER = os.environ.get('AUTHORIZED_USER')
-BOT_API_TOKEN = os.environ.get('BOT_API_TOKEN')
+AUTHORIZED_USER = os.environ.get('AUTHORIZED_USER', '')
+BOT_API_TOKEN = os.environ.get('BOT_API_TOKEN', '')
 PERSISTENCE_DIR = os.environ.get('PERSISTENCE_DIR', None)
 LOG_LEVEL = os.environ.get('LOG_LEVEL', logging.WARNING)
 BOT_LOG_LEVEL = os.environ.get('BOT_LOG_LEVEL', None)
