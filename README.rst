@@ -100,8 +100,7 @@ provided, running this command::
 
     docker build -t telegram-surveillance-bot .
 
-This docker image has H264 support and creates a volume to store persistence
-data (if this option is activated). The image will be created with UTC timezone
+This docker image has H264 support. The image will be created with UTC timezone
 by default (so photo and video timestamp will use this timezone) it can be
 overridden mounting ``/etc/localtime`` file (see `docker-compose.yml
 <./docker-compose.yml>`_ example).
