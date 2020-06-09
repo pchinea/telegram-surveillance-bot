@@ -61,10 +61,10 @@ The application is configured using this environment variables:
     <https://telegram.org/faq#q-what-are-usernames-how-do-i-get-one>`_
     (without @) of the user authorized to interact with the bot.
 
-  - ``PERSISTENCE``
+  - ``PERSISTENCE_DIR``
 
-    If this variable is set to ``1`` the bot configuration (set via telegram
-    chat) will persist on disk.
+    If this variable is set the bot configuration (set via telegram chat) will
+    persist on disk into a file placed in this directory.
 
   - ``LOG_LEVEL``
 
@@ -100,8 +100,7 @@ provided, running this command::
 
     docker build -t telegram-surveillance-bot .
 
-This docker image has H264 support and creates a volume to store persistence
-data (if this option is activated). The image will be created with UTC timezone
+This docker image has H264 support. The image will be created with UTC timezone
 by default (so photo and video timestamp will use this timezone) it can be
 overridden mounting ``/etc/localtime`` file (see `docker-compose.yml
 <./docker-compose.yml>`_ example).

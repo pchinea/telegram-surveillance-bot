@@ -8,5 +8,4 @@ RUN apt update && \
     rm -rf /root/.cache/
 WORKDIR /bot
 COPY src/ /bot/
-VOLUME /bot/persistence/
 ENTRYPOINT ["python3", "main.py"]

@@ -9,7 +9,6 @@ import logging
 import os
 import sys
 from functools import wraps
-from pathlib import Path
 from typing import Callable, Union, Optional, Any
 
 from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
@@ -39,7 +38,7 @@ class Bot:
             self,
             token: str,
             username: str,
-            persistence: Union[str, PicklePersistence, None] = None,
+            persistence_dir: Optional[str] = None,
             log_level: Union[int, str, None] = None
     ) -> None:
         self.logger = logging.getLogger(__name__)
@@ -68,13 +67,13 @@ class Bot:
 
         self.authorized_user = username
 
-        if persistence:
-            Path(
-                os.path.join(os.path.dirname(__file__), 'persistence')
-            ).mkdir(exist_ok=True)
-            persistence = PicklePersistence(
-                filename="persistence/config.pickle"
-            )
+        persistence: Optional[PicklePersistence]
+        if persistence_dir:
+            os.makedirs(persistence_dir)
+            path = os.path.join(persistence_dir, 'surveillance-bot.pickle')
+            persistence = PicklePersistence(filename=path)
+        else:
+            persistence = None
 
         self.updater = Updater(
             token=token,
