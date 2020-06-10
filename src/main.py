@@ -17,6 +17,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=LOG_LEVEL
 )
+logging.captureWarnings(True)
+logging.getLogger('py.warnings').setLevel(logging.ERROR)
 
 
 def main() -> None:
