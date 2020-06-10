@@ -2,7 +2,7 @@
 import logging
 import os
 
-from bot import Bot
+import bot
 
 # Configuration environment variables.
 AUTHORIZED_USER = os.environ.get('AUTHORIZED_USER', '')
@@ -21,14 +21,14 @@ logging.basicConfig(
 
 def main() -> None:
     """Surveillance Telegram Bot start up function."""
-    bot = Bot(
+    surveillance_bot = bot.Bot(
         token=BOT_API_TOKEN,
         username=AUTHORIZED_USER,
         persistence_dir=PERSISTENCE_DIR,
         log_level=BOT_LOG_LEVEL
     )
-    bot.start()
+    surveillance_bot.start()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()
