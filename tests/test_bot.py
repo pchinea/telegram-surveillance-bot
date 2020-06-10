@@ -310,6 +310,7 @@ def test_get_video_command(mocker: pytest_mock.mocker) -> None:
     assert action_params[0]['action'] == 'record_video'
     assert action_params[1]['action'] == 'upload_video'
     assert video_params[0]['video'].read(12) == b'\x00\x00\x00\x1cftypisom'
+    bot.camera.stop()
 
 
 def test_surveillance_start_command(mocker: pytest_mock.mocker) -> None:
@@ -352,6 +353,7 @@ def test_surveillance_start_command(mocker: pytest_mock.mocker) -> None:
     assert action_params[1]['action'] == 'upload_photo'
     assert action_params[2]['action'] == 'record_video'
     assert action_params[3]['action'] == 'upload_video'
+    bot.camera.stop()
 
 
 def test_surveillance_errors(mocker: pytest_mock.mocker) -> None:
@@ -384,3 +386,4 @@ def test_surveillance_errors(mocker: pytest_mock.mocker) -> None:
     threads[0].join()
     assert 'not started' in parameters[0]['text']
     assert 'already started' in parameters[2]['text']
+    bot.camera.stop()
