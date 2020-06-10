@@ -5,7 +5,7 @@ import os
 import time
 from hashlib import md5
 from io import BytesIO
-from typing import List, Tuple, Callable
+from typing import Callable, List, Tuple
 
 import cv2
 import numpy as np

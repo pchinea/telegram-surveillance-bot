@@ -5,17 +5,21 @@ import logging
 from hashlib import md5
 from time import sleep
 
-import pytest
 import _pytest.logging
 import _pytest.tmpdir
+import pytest
 import pytest_mock
 
 from src.bot import Bot
-from tests.opencv_mock import mock_video_capture, mock_bad_video_writer, \
-    FRAMES_MD5
-from tests.telegram_bot_mock import mock_telegram_updater, \
-    get_mocked_update_object, get_mocked_context_object, \
-    get_kwargs_grabber, mock_run_async
+
+from .opencv_mock import FRAMES_MD5, mock_bad_video_writer, mock_video_capture
+from .telegram_bot_mock import (
+    get_kwargs_grabber,
+    get_mocked_context_object,
+    get_mocked_update_object,
+    mock_run_async,
+    mock_telegram_updater
+)
 
 
 def test_init_without_token(caplog: _pytest.logging.caplog) -> None:

@@ -2,8 +2,13 @@
 Test suite for BotConfig class testing.
 """
 from src.bot_config import BotConfig
-from .telegram_bot_mock import get_mocked_update_object, \
-    get_mocked_context_object, get_kwargs_grabber, TelegramBotMock
+
+from .telegram_bot_mock import (
+    TelegramBotMock,
+    get_kwargs_grabber,
+    get_mocked_context_object,
+    get_mocked_update_object
+)
 
 
 def test_get_config_handler() -> None:

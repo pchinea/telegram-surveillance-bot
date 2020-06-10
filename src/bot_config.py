@@ -4,12 +4,21 @@ Module for bot configuration functionality.
 This module contains the `BotConfig` class that implements a conversational
 sequence in order to configure the bot behavior.
 """
-from typing import List, TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, List
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, \
-    ParseMode
-from telegram.ext import ConversationHandler, CallbackQueryHandler, \
-    MessageHandler, Filters, CallbackContext
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ParseMode,
+    Update
+)
+from telegram.ext import (
+    CallbackContext,
+    CallbackQueryHandler,
+    ConversationHandler,
+    Filters,
+    MessageHandler
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from bot import Bot  # pylint: disable=cyclic-import

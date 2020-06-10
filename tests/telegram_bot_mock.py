@@ -2,7 +2,7 @@
 Helper module for bot related mocking.
 """
 from threading import Thread
-from typing import List, Tuple, Callable, Dict
+from typing import Callable, Dict, List, Tuple
 from unittest.mock import MagicMock
 
 import pytest_mock

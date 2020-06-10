@@ -8,8 +8,8 @@ import pytest
 import pytest_mock
 
 from src.camera import Camera, CodecNotAvailable
-from tests.opencv_mock import mock_video_capture, mock_bad_video_writer, \
-    FRAMES_MD5
+
+from .opencv_mock import FRAMES_MD5, mock_bad_video_writer, mock_video_capture
 
 
 def test_init_ok(mocker: pytest_mock.mocker) -> None:

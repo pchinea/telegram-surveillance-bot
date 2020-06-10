@@ -9,16 +9,15 @@ import os
 from datetime import datetime
 from io import BytesIO
 from tempfile import TemporaryDirectory
-from threading import Thread, Lock
+from threading import Lock, Thread
 from time import time
-from typing import IO, Tuple, Dict, Any, Optional, List, Iterator
+from typing import IO, Any, Dict, Iterator, List, Optional, Tuple
 
 import cv2
 import numpy as np
 
 
 # Exceptions
-
 class CameraError(Exception):
     """Base class for Camera related errors."""
 
@@ -32,7 +31,6 @@ class CodecNotAvailable(CameraError):
 
 
 # Classes
-
 class CameraDevice:
     """
     Class for camera hardware handling.
