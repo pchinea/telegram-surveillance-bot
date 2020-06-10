@@ -185,13 +185,7 @@ def test_command_wrapper(
 
     # Checks default configuration
     bot.updater.dispatcher.commands['start'](update, context)
-    assert context.bot_data == {
-        'timestamp': True,
-        'od_video_duration': 5,
-        'srv_video_duration': 30,
-        'srv_picture_interval': 5,
-        'srv_motion_contours': True
-    }
+    assert len(context.bot_data) == 5
 
     # Unauthorized
     update.effective_chat.username = 'BAD_USER'

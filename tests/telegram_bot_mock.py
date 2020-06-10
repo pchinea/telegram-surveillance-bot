@@ -16,13 +16,13 @@ class DispatcherMock(MagicMock):
 
     def add_handler(self, handler) -> None:
         """
-        Stores a mocked command handler.
+        Stores a command handler data.
 
         Args:
-            handler: Mocked command handler to store.
+            handler: Command handler to store.
         """
-        if isinstance(handler, CommandHandlerMock):
-            self.commands[handler.commands[0]] = handler.commands[1]
+        if hasattr(handler, 'command'):
+            self.commands[handler.command[0]] = handler.callback
 
 
 class TelegramBotMock(MagicMock):
@@ -30,13 +30,6 @@ class TelegramBotMock(MagicMock):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.dispatcher = DispatcherMock()
-
-
-class CommandHandlerMock(MagicMock):
-    """Mock object to simulate a telegram bot command handler."""
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.commands = args
 
 
 def mock_telegram_updater(mocker: pytest_mock.mocker) -> TelegramBotMock:
@@ -49,7 +42,6 @@ def mock_telegram_updater(mocker: pytest_mock.mocker) -> TelegramBotMock:
     Returns:
         A mocked telegram bot instance.
     """
-    mocker.patch('src.bot.CommandHandler', CommandHandlerMock)
     return mocker.patch('src.bot.Updater', TelegramBotMock)
 
 
@@ -89,6 +81,12 @@ def get_mocked_update_object() -> MagicMock:
     """
     update = MagicMock()
     update.effective_chat.username = 'FAKE_USER'
+
+    def answer():
+        update.callback_query.answered = True
+
+    update.callback_query.answered = False
+    update.callback_query.answer = answer
     return update
 
 
@@ -101,6 +99,7 @@ def get_mocked_context_object() -> MagicMock:
     """
     context = MagicMock()
     context.bot_data = {}
+    context.user_data = {}
     return context
 
 

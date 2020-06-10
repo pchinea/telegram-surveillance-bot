@@ -11,7 +11,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, \
 from telegram.ext import ConversationHandler, CallbackQueryHandler, \
     MessageHandler, Filters, CallbackContext
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from bot import Bot  # pylint: disable=cyclic-import
 
 
@@ -572,7 +572,7 @@ class BotConfig:
             context: CallbackContext,
             text: str,
             current_variable: str,
-            return_handler:  Callable[[Update, CallbackContext], str]
+            return_handler: Callable[[Update, CallbackContext], str]
     ) -> str:
         """
         Builds a integer question to send it to the user using received data.
@@ -639,7 +639,7 @@ class BotConfig:
             assert value < 100
         except (ValueError, AssertionError):
             update.message.reply_text(
-                'Invalid value, insert an integer number between 1 and 99'
+                text='Invalid value, insert an integer number between 1 and 99'
             )
             return BotConfig.INTEGER_INPUT
 
@@ -667,6 +667,6 @@ class BotConfig:
             update.callback_query.answer()
             update.callback_query.edit_message_text(text='Configuration done.')
         else:
-            update.message.reply_text('Configuration canceled.')
+            update.message.reply_text(text='Configuration canceled.')
 
         return BotConfig.END
