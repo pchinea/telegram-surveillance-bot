@@ -337,6 +337,8 @@ def test_surveillance_start_command(mocker: pytest_mock.mocker) -> None:
 
     bot.updater.dispatcher.commands['surveillance_status'](update, context)
     bot.updater.dispatcher.commands['surveillance_start'](update, context)
+    while not bot.camera.is_surveillance_active:
+        pass
     bot.updater.dispatcher.commands['surveillance_status'](update, context)
     while len(action_params) < 4:
         pass
@@ -378,6 +380,8 @@ def test_surveillance_errors(mocker: pytest_mock.mocker) -> None:
 
     bot.updater.dispatcher.commands['surveillance_stop'](update, context)
     bot.updater.dispatcher.commands['surveillance_start'](update, context)
+    while not bot.camera.is_surveillance_active:
+        pass
     bot.updater.dispatcher.commands['surveillance_start'](update, context)
     while len(action_params) < 1:
         pass
