@@ -111,9 +111,10 @@ def test_init_logging_level(mocker: pytest_mock.mocker) -> None:
     mock_telegram_updater(mocker)
     mock_video_capture(mocker, reader=False)
 
-    # Default level (WARNING)
+    # Default level (same as root logger)
+    root_logger_level = logging.getLogger().getEffectiveLevel()
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
-    assert bot.logger.getEffectiveLevel() == logging.WARNING
+    assert bot.logger.getEffectiveLevel() == root_logger_level
 
     # Change level
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER', log_level='INFO')
