@@ -1,4 +1,8 @@
 -r requirements.txt
+mypy
 pylint
+pytest
+pytest-cov
+pytest-mock
 sphinx
 sphinx-rtd-theme

@@ -9,11 +9,17 @@ import logging
 import os
 import sys
 from functools import wraps
-from typing import Callable, Union, Optional, Any
+from typing import Any, Callable, Optional, Union
 
-from telegram import Update, ReplyKeyboardMarkup, ChatAction, ParseMode
-from telegram.ext import Updater, CommandHandler, CallbackContext, run_async, \
-    PicklePersistence, Dispatcher
+from telegram import ChatAction, ParseMode, ReplyKeyboardMarkup, Update
+from telegram.ext import (
+    CallbackContext,
+    CommandHandler,
+    Dispatcher,
+    PicklePersistence,
+    Updater,
+    run_async
+)
 
 from bot_config import BotConfig
 from camera import Camera, CameraConnectionError, CodecNotAvailable

@@ -4,14 +4,23 @@ Module for bot configuration functionality.
 This module contains the `BotConfig` class that implements a conversational
 sequence in order to configure the bot behavior.
 """
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, List
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, \
-    ParseMode
-from telegram.ext import ConversationHandler, CallbackQueryHandler, \
-    MessageHandler, Filters, CallbackContext
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ParseMode,
+    Update
+)
+from telegram.ext import (
+    CallbackContext,
+    CallbackQueryHandler,
+    ConversationHandler,
+    Filters,
+    MessageHandler
+)
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from bot import Bot  # pylint: disable=cyclic-import
 
 
@@ -171,7 +180,7 @@ class BotConfig:
     # Menus
 
     @staticmethod
-    def _main_menu(update: Update, _: CallbackContext) -> chr:
+    def _main_menu(update: Update, _: CallbackContext) -> str:
         """
         Creates the main menu and send it to the user.
 
@@ -214,7 +223,7 @@ class BotConfig:
         return BotConfig.MAIN_MENU
 
     @staticmethod
-    def _general_config(update: Update, context: CallbackContext) -> chr:
+    def _general_config(update: Update, context: CallbackContext) -> str:
         """
         Creates the menu for general configuration and send it to the user.
 
@@ -262,7 +271,7 @@ class BotConfig:
         return BotConfig.GENERAL_CONFIG
 
     @staticmethod
-    def _surveillance_config(update: Update, context: CallbackContext) -> chr:
+    def _surveillance_config(update: Update, context: CallbackContext) -> str:
         """
         Creates the menu for the surveillance mode configuration and send it
         to the user.
@@ -357,7 +366,7 @@ class BotConfig:
     def _change_timestamp(
             update: Update,
             context: CallbackContext
-    ) -> chr:
+    ) -> str:
         """
         Prepares all required data to request the TIMESTAMP configuration to
         the user.
@@ -391,7 +400,7 @@ class BotConfig:
     def _change_od_video_duration(
             update: Update,
             context: CallbackContext
-    ) -> chr:
+    ) -> str:
         """
         Prepares all required data to request the OD_VIDEO_DURATION
         configuration to the user.
@@ -425,7 +434,7 @@ class BotConfig:
     def _change_srv_video_duration(
             update: Update,
             context: CallbackContext
-    ) -> chr:
+    ) -> str:
         """
         Prepares all required data to request the SRV_VIDEO_DURATION
         configuration to the user.
@@ -457,7 +466,7 @@ class BotConfig:
     def _change_srv_picture_interval(
             update: Update,
             context: CallbackContext
-    ) -> chr:
+    ) -> str:
         """
         Prepares all required data to request the SRV_PICTURE_INTERVAL
         configuration to the user.
@@ -489,7 +498,7 @@ class BotConfig:
     def _change_motion_contours(
             update: Update,
             context: CallbackContext
-    ) -> chr:
+    ) -> str:
         """
         Prepares all required data to request the SRV_MOTION_CONTOURS
         configuration to the user.
@@ -526,9 +535,9 @@ class BotConfig:
             update: Update,
             context: CallbackContext,
             text: str,
-            current_variable: chr,
-            return_handler: chr
-    ) -> chr:
+            current_variable: str,
+            return_handler: Callable[[Update, CallbackContext], str]
+    ) -> str:
         """
         Builds a boolean question to send it to the user using received data.
 
@@ -571,9 +580,9 @@ class BotConfig:
             update: Update,
             context: CallbackContext,
             text: str,
-            current_variable: chr,
-            return_handler: chr
-    ) -> chr:
+            current_variable: str,
+            return_handler: Callable[[Update, CallbackContext], str]
+    ) -> str:
         """
         Builds a integer question to send it to the user using received data.
 
@@ -601,7 +610,7 @@ class BotConfig:
     # Input handlers.
 
     @staticmethod
-    def _boolean_input(update: Update, context: CallbackContext) -> chr:
+    def _boolean_input(update: Update, context: CallbackContext) -> str:
         """
         Receive a boolean input from the user and saves the value into
         corresponding variable.
@@ -620,7 +629,7 @@ class BotConfig:
         return context.user_data[BotConfig.RETURN_HANDLER](update, context)
 
     @staticmethod
-    def _integer_input(update: Update, context: CallbackContext) -> chr:
+    def _integer_input(update: Update, context: CallbackContext) -> str:
         """
         Receive a integer input from the user, validates it, and saves the
         value into corresponding variable.
@@ -639,7 +648,7 @@ class BotConfig:
             assert value < 100
         except (ValueError, AssertionError):
             update.message.reply_text(
-                'Invalid value, insert an integer number between 1 and 99'
+                text='Invalid value, insert an integer number between 1 and 99'
             )
             return BotConfig.INTEGER_INPUT
 
@@ -667,6 +676,6 @@ class BotConfig:
             update.callback_query.answer()
             update.callback_query.edit_message_text(text='Configuration done.')
         else:
-            update.message.reply_text('Configuration canceled.')
+            update.message.reply_text(text='Configuration canceled.')
 
         return BotConfig.END

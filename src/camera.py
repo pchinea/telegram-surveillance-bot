@@ -9,16 +9,15 @@ import os
 from datetime import datetime
 from io import BytesIO
 from tempfile import TemporaryDirectory
-from threading import Thread, Lock
+from threading import Lock, Thread
 from time import time
-from typing import IO, Tuple, Dict, Any, Optional, List, Iterator
+from typing import IO, Any, Dict, Iterator, List, Optional, Tuple
 
 import cv2
 import numpy as np
 
 
 # Exceptions
-
 class CameraError(Exception):
     """Base class for Camera related errors."""
 
@@ -32,7 +31,6 @@ class CodecNotAvailable(CameraError):
 
 
 # Classes
-
 class CameraDevice:
     """
     Class for camera hardware handling.
@@ -202,7 +200,7 @@ class Camera:
         path, video_writer = self._create_video_file('on_demand')
         n_frames = self._camera.fps * seconds
 
-        processed = []
+        processed: List[int] = []
         while len(processed) < n_frames:
             frame_id, frame = self._camera.read(timestamp=timestamp)
             if frame_id not in processed:
@@ -339,8 +337,8 @@ class Camera:
         fps = self._camera.fps
         processed = []
         n_frames = 0
-        path: Optional[str] = None
-        video_writer: Optional[cv2.VideoWriter] = None
+        path = ''
+        video_writer: cv2.VideoWriter = cv2.VideoWriter()
 
         for detected, frame_id, frame in self._motion_detection(
                 timestamp=timestamp,
