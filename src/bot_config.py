@@ -21,7 +21,7 @@ from telegram.ext import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover
-    from bot import Bot  # pylint: disable=cyclic-import
+    from src.bot import Bot  # pylint: disable=cyclic-import
 
 
 class BotConfig:
