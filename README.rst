@@ -45,7 +45,7 @@ Quick-start
 
 3. Run script::
 
-    python3 src/main.py
+    python3 surveillance_bot.py
 
 Advanced configuration
 **********************

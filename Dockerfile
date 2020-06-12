@@ -7,5 +7,6 @@ RUN apt update && \
     pip3 install python-telegram-bot && \
     rm -rf /root/.cache/
 WORKDIR /bot
-COPY src/ /bot/
-ENTRYPOINT ["python3", "main.py"]
+COPY surveillance_bot.py /bot/
+COPY surveillance_bot/ /bot/surveillance_bot/
+ENTRYPOINT ["python3", "surveillance_bot.py"]

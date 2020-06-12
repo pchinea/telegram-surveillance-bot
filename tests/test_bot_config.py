@@ -1,7 +1,7 @@
 """
 Test suite for BotConfig class testing.
 """
-from src.bot_config import BotConfig
+from surveillance_bot.bot_config import BotConfig
 
 from .telegram_bot_mock import (
     TelegramBotMock,

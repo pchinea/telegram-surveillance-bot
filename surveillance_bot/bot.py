@@ -21,8 +21,12 @@ from telegram.ext import (
     run_async
 )
 
-from src.bot_config import BotConfig
-from src.camera import Camera, CameraConnectionError, CodecNotAvailable
+from surveillance_bot.bot_config import BotConfig
+from surveillance_bot.camera import (
+    Camera,
+    CameraConnectionError,
+    CodecNotAvailable
+)
 
 HandlerType = Callable[[Update, CallbackContext], Any]
 

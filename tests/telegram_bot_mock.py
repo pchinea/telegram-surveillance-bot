@@ -42,7 +42,7 @@ def mock_telegram_updater(mocker: pytest_mock.mocker) -> TelegramBotMock:
     Returns:
         A mocked telegram bot instance.
     """
-    return mocker.patch('src.bot.Updater', TelegramBotMock)
+    return mocker.patch('surveillance_bot.bot.Updater', TelegramBotMock)
 
 
 def mock_run_async(mocker: pytest_mock.mocker) -> List[Thread]:
