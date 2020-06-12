@@ -10,9 +10,8 @@ import _pytest.tmpdir
 import pytest
 import pytest_mock
 
-from surveillance_bot.bot import Bot
-
 from opencv_mock import FRAMES_MD5, mock_bad_video_writer, mock_video_capture
+from surveillance_bot.bot import Bot
 from telegram_bot_mock import (
     get_kwargs_grabber,
     get_mocked_context_object,

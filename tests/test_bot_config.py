@@ -2,7 +2,6 @@
 Test suite for BotConfig class testing.
 """
 from surveillance_bot.bot_config import BotConfig
-
 from telegram_bot_mock import (
     TelegramBotMock,
     get_kwargs_grabber,

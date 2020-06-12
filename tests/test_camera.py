@@ -7,9 +7,8 @@ from time import sleep
 import pytest
 import pytest_mock
 
-from surveillance_bot.camera import Camera, CodecNotAvailable
-
 from opencv_mock import FRAMES_MD5, mock_bad_video_writer, mock_video_capture
+from surveillance_bot.camera import Camera, CodecNotAvailable
 
 
 def test_init_ok(mocker: pytest_mock.mocker) -> None:
