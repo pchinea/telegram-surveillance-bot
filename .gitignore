@@ -1,7 +1,19 @@
+# PyCharm
 .idea/
+
+# Byte-compiled
 __pycache__
+
+# Unit test / coverage reports
 .coverage
 .coverage.*
 .mypy_cache
 .pytest_cache
+
+# Documentation
 docs/_build
+
+# Distribution / packaging
+build
+dist
+*.egg-info/
