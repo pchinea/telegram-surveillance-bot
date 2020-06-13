@@ -121,3 +121,13 @@ def get_kwargs_grabber() -> Tuple[List, Callable]:
         parameters.append(kwargs)
         return MagicMock()
     return parameters, kwargs_grabber
+
+
+def fake_handler(_, __) -> str:
+    """
+    Simulates a handler function for bot_config testing.
+
+    Returns:
+        Fake string return.
+    """
+    return 'fake_return'

@@ -27,7 +27,7 @@ Features
 
 Requirements
 ************
-- python 3.6+
+- python (versions: 3.6, 3.7 and 3.8)
 - OpenCV
 - python-telegram-bot
 
