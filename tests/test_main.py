@@ -20,12 +20,13 @@ def test_main(
         caplog: Fixture for log messages capturing.
         mocker: Fixture for object mocking.
     """
-    mocker.patch('surveillance_bot.main.BOT_API_TOKEN', 'FAKE_TOKEN')
-    mocker.patch('surveillance_bot.main.AUTHORIZED_USER', 'FAKE_USER')
-    mocker.patch('surveillance_bot.main.BOT_LOG_LEVEL', 'INFO')
     mocker.patch('surveillance_bot.main.bot.Updater')
     mocker.patch('cv2.VideoCapture')
     mocker.patch('cv2.VideoWriter')
+
+    surveillance_bot.main.BOT_API_TOKEN = 'FAKE_TOKEN'
+    surveillance_bot.main.AUTHORIZED_USER = 'FAKE_USER'
+    surveillance_bot.main.BOT_LOG_LEVEL = 'INFO'
 
     surveillance_bot.main.main()
     assert len(caplog.records) == 2
