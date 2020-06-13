@@ -1,8 +1,10 @@
 -r requirements.txt
 mypy
+numpy
 pylint
 pytest
 pytest-cov
 pytest-mock
 sphinx
 sphinx-rtd-theme
+tox
