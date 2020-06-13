@@ -6,7 +6,7 @@ import logging
 import _pytest.logging
 import pytest_mock
 
-import src.main
+import surveillance_bot.main
 
 
 def test_main(
@@ -20,14 +20,15 @@ def test_main(
         caplog: Fixture for log messages capturing.
         mocker: Fixture for object mocking.
     """
-    mocker.patch('src.main.BOT_API_TOKEN', 'FAKE_TOKEN')
-    mocker.patch('src.main.AUTHORIZED_USER', 'FAKE_USER')
-    mocker.patch('src.main.BOT_LOG_LEVEL', 'INFO')
-    mocker.patch('src.main.bot.Updater')
+    mocker.patch('surveillance_bot.main.bot.Updater')
     mocker.patch('cv2.VideoCapture')
     mocker.patch('cv2.VideoWriter')
 
-    src.main.main()
+    surveillance_bot.main.BOT_API_TOKEN = 'FAKE_TOKEN'
+    surveillance_bot.main.AUTHORIZED_USER = 'FAKE_USER'
+    surveillance_bot.main.BOT_LOG_LEVEL = 'INFO'
+
+    surveillance_bot.main.main()
     assert len(caplog.records) == 2
     assert caplog.records[0].levelno == logging.INFO
     assert 'started' in caplog.records[0].message

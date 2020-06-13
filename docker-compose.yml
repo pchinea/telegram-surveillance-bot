@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  surveillance-telegram-bot:
+  telegram-surveillance-bot:
     container_name: telegram-surveillance-bot
     image: telegram-surveillance-bot
     devices:

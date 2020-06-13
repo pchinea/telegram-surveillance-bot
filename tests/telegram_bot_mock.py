@@ -42,7 +42,7 @@ def mock_telegram_updater(mocker: pytest_mock.mocker) -> TelegramBotMock:
     Returns:
         A mocked telegram bot instance.
     """
-    return mocker.patch('src.bot.Updater', TelegramBotMock)
+    return mocker.patch('surveillance_bot.bot.Updater', TelegramBotMock)
 
 
 def mock_run_async(mocker: pytest_mock.mocker) -> List[Thread]:
@@ -121,3 +121,13 @@ def get_kwargs_grabber() -> Tuple[List, Callable]:
         parameters.append(kwargs)
         return MagicMock()
     return parameters, kwargs_grabber
+
+
+def fake_handler(_, __) -> str:
+    """
+    Simulates a handler function for bot_config testing.
+
+    Returns:
+        Fake string return.
+    """
+    return 'fake_return'

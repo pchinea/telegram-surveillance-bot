@@ -7,9 +7,8 @@ import numpy as np
 import pytest
 import pytest_mock
 
-from src.camera import CameraConnectionError, CameraDevice
-
-from .opencv_mock import FPS, FRAME_SIZE, mock_video_capture
+from opencv_mock import FPS, FRAME_SIZE, mock_video_capture
+from surveillance_bot.camera import CameraConnectionError, CameraDevice
 
 
 def test_init_ok(mocker: pytest_mock.mocker) -> None:

@@ -1,13 +1,13 @@
 """
 Test suite for BotConfig class testing.
 """
-from src.bot_config import BotConfig
-
-from .telegram_bot_mock import (
+from surveillance_bot.bot_config import BotConfig
+from telegram_bot_mock import (
     TelegramBotMock,
     get_kwargs_grabber,
     get_mocked_context_object,
-    get_mocked_update_object
+    get_mocked_update_object,
+    fake_handler
 )
 
 
@@ -227,7 +227,7 @@ def test_boolean_question() -> None:
         context,
         'fake_text',
         'fake_variable',
-        fake_handler := lambda x, y: 'fake_return'
+        fake_handler
     ) == BotConfig.BOOLEAN_INPUT
     assert parameters[0]['text'] == 'fake_text'
     assert parameters[0]['reply_markup'].to_dict() == {
@@ -262,7 +262,7 @@ def test_integer_question() -> None:
         context,
         'fake_text',
         'fake_variable',
-        fake_handler := lambda x, y: 'fake_return'
+        fake_handler
     ) == BotConfig.INTEGER_INPUT
     assert parameters[0]['text'] == 'fake_text'
     assert context.user_data == {
@@ -278,7 +278,7 @@ def test_boolean_input() -> None:
     context = get_mocked_context_object()
 
     context.user_data[BotConfig.CURRENT_VARIABLE] = 'fake_variable'
-    context.user_data[BotConfig.RETURN_HANDLER] = lambda x, y: 'fake_return'
+    context.user_data[BotConfig.RETURN_HANDLER] = fake_handler
 
     context.bot_data['fake_variable'] = False
     update.callback_query.data = BotConfig.ENABLE
@@ -296,7 +296,7 @@ def test_integer_input() -> None:
     context = get_mocked_context_object()
 
     context.user_data[BotConfig.CURRENT_VARIABLE] = 'fake_variable'
-    context.user_data[BotConfig.RETURN_HANDLER] = lambda x, y: 'fake_return'
+    context.user_data[BotConfig.RETURN_HANDLER] = fake_handler
 
     context.bot_data['fake_variable'] = 24
     update.message.text = '42'

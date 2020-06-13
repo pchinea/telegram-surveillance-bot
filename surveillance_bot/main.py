@@ -2,7 +2,7 @@
 import logging
 import os
 
-import bot
+from surveillance_bot import bot
 
 # Configuration environment variables.
 AUTHORIZED_USER = os.environ.get('AUTHORIZED_USER', '')

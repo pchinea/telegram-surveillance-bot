@@ -10,10 +10,9 @@ import _pytest.tmpdir
 import pytest
 import pytest_mock
 
-from src.bot import Bot
-
-from .opencv_mock import FRAMES_MD5, mock_bad_video_writer, mock_video_capture
-from .telegram_bot_mock import (
+from opencv_mock import FRAMES_MD5, mock_bad_video_writer, mock_video_capture
+from surveillance_bot.bot import Bot
+from telegram_bot_mock import (
     get_kwargs_grabber,
     get_mocked_context_object,
     get_mocked_update_object,
@@ -111,12 +110,9 @@ def test_init_logging_level(mocker: pytest_mock.mocker) -> None:
     mock_telegram_updater(mocker)
     mock_video_capture(mocker, reader=False)
 
-    # Default level (same as root logger)
-    root_logger_level = logging.getLogger().getEffectiveLevel()
-    bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
-    assert bot.logger.getEffectiveLevel() == root_logger_level
+    bot = Bot(token='FAKE_TOKEN', username='FAKE_USER', log_level='WARNING')
+    assert bot.logger.getEffectiveLevel() == logging.WARNING
 
-    # Change level
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER', log_level='INFO')
     assert bot.logger.getEffectiveLevel() == logging.INFO
 

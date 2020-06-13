@@ -27,7 +27,7 @@ Features
 
 Requirements
 ************
-- python 3.6+
+- python (versions: 3.6, 3.7 and 3.8)
 - OpenCV
 - python-telegram-bot
 
@@ -45,7 +45,7 @@ Quick-start
 
 3. Run script::
 
-    python3 src/main.py
+    python3 start.py
 
 Advanced configuration
 **********************
