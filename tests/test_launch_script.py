@@ -16,7 +16,7 @@ def test_launch_script(caplog: _pytest.logging.caplog):
         caplog: Fixture for log messages capturing.
     """
     with pytest.raises(SystemExit) as error:
-        runpy.run_path('surveillance_bot.py')
+        runpy.run_path('start.py')
 
     assert len(caplog.records) == 1
     record = caplog.records[0]
