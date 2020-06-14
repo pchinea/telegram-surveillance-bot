@@ -6,6 +6,10 @@ Surveillance Bot
     :target: https://travis-ci.com/pchinea/telegram-surveillance-bot
     :alt: Build status
 
+.. image:: https://codecov.io/gh/pchinea/telegram-surveillance-bot/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/pchinea/telegram-surveillance-bot
+    :alt: Coverage
+
 Surveillance Bot is a Telegram bot that uses a camera (such a webcam) for
 surveillance. Photos and videos can be taken from the camera and sent via
 Telegram instantly. Those actions can be triggered by commands sent by the
