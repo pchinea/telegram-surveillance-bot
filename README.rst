@@ -125,29 +125,25 @@ Screenshots
 Start command
 =============
 
-.. image:: ./img/start.png
-   :target: ./img/start.png
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/raw/master/img/start.png
    :alt: Start command
 
 Config command
 ==============
 
-.. image:: ./img/config.jpg
-   :target: ./img/config.jpg
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/raw/master/img/config.jpg
    :alt: Config command
 
 Surveillance sequence screencast
 ================================
 
-.. image:: ./img/surveillance.gif
-   :target: ./img/surveillance.gif
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/raw/master/img/surveillance.gif
    :alt: Surveillance sequence
 
 Video taken in surveillance mode
 ================================
 
-.. image:: ./img/motion.gif
-   :target: ./img/motion.gif
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/raw/master/img/motion.gif
    :alt: Motion video
 
 
