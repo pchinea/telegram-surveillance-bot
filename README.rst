@@ -10,6 +10,14 @@ Surveillance Bot
     :target: https://codecov.io/gh/pchinea/telegram-surveillance-bot
     :alt: Coverage
 
+.. image:: https://img.shields.io/pypi/pyversions/surveillance-bot
+    :target: https://pypi.org/project/surveillance-bot
+    :alt: PyPI - Python Version
+
+.. image:: https://img.shields.io/badge/License-GPLv3-blue.svg
+    :target: https://github.com/pchinea/telegram-surveillance-bot/blob/master/LICENSE.txt
+    :alt:  License
+
 Surveillance Bot is a Telegram bot that uses a camera (such a webcam) for
 surveillance. Photos and videos can be taken from the camera and sent via
 Telegram instantly. Those actions can be triggered by commands sent by the
@@ -42,9 +50,9 @@ Requirements
 Quick-start
 ***********
 
-1. Install dependencies with ``pip``::
+1. Install package with ``pip``::
 
-    pip install -r requirements.txt
+    pip install surveillance-bot
 
 2. Set application configuration variables (see `Advanced configuration`_)::
 
@@ -53,7 +61,7 @@ Quick-start
 
 3. Run script::
 
-    python3 start.py
+    surveillance_bot
 
 Advanced configuration
 **********************
@@ -111,7 +119,8 @@ provided, running this command::
 This docker image has H264 support. The image will be created with UTC timezone
 by default (so photo and video timestamp will use this timezone) it can be
 overridden mounting ``/etc/localtime`` file (see `docker-compose.yml
-<./docker-compose.yml>`_ example).
+<https://github.com/pchinea/telegram-surveillance-bot/blob/master/docker-compose.yml>`_
+example).
 
 docker-compose
 ==============
@@ -125,29 +134,25 @@ Screenshots
 Start command
 =============
 
-.. image:: ./img/start.png
-   :target: ./img/start.png
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/raw/master/img/start.png
    :alt: Start command
 
 Config command
 ==============
 
-.. image:: ./img/config.jpg
-   :target: ./img/config.jpg
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/raw/master/img/config.jpg
    :alt: Config command
 
 Surveillance sequence screencast
 ================================
 
-.. image:: ./img/surveillance.gif
-   :target: ./img/surveillance.gif
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/raw/master/img/surveillance.gif
    :alt: Surveillance sequence
 
 Video taken in surveillance mode
 ================================
 
-.. image:: ./img/motion.gif
-   :target: ./img/motion.gif
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/raw/master/img/motion.gif
    :alt: Motion video
 
 
