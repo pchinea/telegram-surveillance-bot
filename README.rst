@@ -42,9 +42,9 @@ Requirements
 Quick-start
 ***********
 
-1. Install dependencies with ``pip``::
+1. Install package with ``pip``::
 
-    pip install -r requirements.txt
+    pip install surveillance-bot
 
 2. Set application configuration variables (see `Advanced configuration`_)::
 
@@ -53,7 +53,7 @@ Quick-start
 
 3. Run script::
 
-    python3 start.py
+    surveillance_bot
 
 Advanced configuration
 **********************
@@ -111,7 +111,8 @@ provided, running this command::
 This docker image has H264 support. The image will be created with UTC timezone
 by default (so photo and video timestamp will use this timezone) it can be
 overridden mounting ``/etc/localtime`` file (see `docker-compose.yml
-<./docker-compose.yml>`_ example).
+<https://github.com/pchinea/telegram-surveillance-bot/blob/master/docker-compose.yml>`_
+example).
 
 docker-compose
 ==============
