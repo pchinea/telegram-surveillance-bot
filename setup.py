@@ -9,7 +9,7 @@ setuptools.setup(
     python_requires='>=3.6, <3.9',
     entry_points={
         'console_scripts': [
-            'surveillance_bot = surveillance_bot.__main__:main'
+            'surveillance_bot = surveillance_bot.main:main'
         ]
     },
     author="Pablo Chinea",
