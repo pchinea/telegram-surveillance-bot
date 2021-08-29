@@ -251,10 +251,9 @@ def test_start_command(mocker: pytest_mock.mocker) -> None:
     assert 'available commands:' in parameters[1]['text']
 
     # Reply keyboard
-    assert parameters[1]['reply_markup']['keyboard'] == [
-        ['/get_photo', '/get_video'],
-        ['/surveillance_start']
-    ]
+    assert parameters[1]['reply_markup'].keyboard[0][0]['text'] == '/get_photo'
+    assert parameters[1]['reply_markup'].keyboard[0][1]['text'] == '/get_video'
+    assert parameters[1]['reply_markup'].keyboard[1][0]['text'] == '/surveillance_start'
 
 
 def test_get_photo_command(mocker: pytest_mock.mocker) -> None:
