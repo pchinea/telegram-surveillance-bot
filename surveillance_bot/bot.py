@@ -17,8 +17,7 @@ from telegram.ext import (
     CommandHandler,
     Dispatcher,
     PicklePersistence,
-    Updater,
-    run_async
+    Updater
 )
 
 from surveillance_bot.bot_config import BotConfig
@@ -98,6 +97,9 @@ class Bot:
             if name.startswith('_command_'):
                 command = name.replace('_command_', '')
                 dispatcher.add_handler(self.command_handler(command, method))
+            if name.startswith('_async_command_'):
+                command = name.replace('_async_command_', '')
+                dispatcher.add_handler(self.command_handler(command, method, run_async=True))
 
         # Registers configuration menu
         dispatcher.add_handler(BotConfig.get_config_handler(self))
@@ -108,7 +110,8 @@ class Bot:
     def command_handler(
             self,
             command: str,
-            callback: HandlerType
+            callback: HandlerType,
+            **kwargs
     ) -> CommandHandler:
         """
         Decorates callback and returns a CommandHandler.
@@ -142,7 +145,7 @@ class Bot:
             logger.debug('Received "%s" command', command)
             return callback(update, context)
 
-        return CommandHandler(command, wrapped)
+        return CommandHandler(command, wrapped, **kwargs)
 
     def start(self) -> None:
         """
@@ -161,7 +164,7 @@ class Bot:
         self.camera.stop()
         self.logger.info("Surveillance Bot stopped")
 
-    def _error(self, update: Update, context: CallbackContext) -> None:
+    def _error(self, update: Union[Update, object], context: CallbackContext) -> None:
         """
         Logs Errors caused by updates.
 
@@ -341,8 +344,7 @@ class Bot:
             message_id=message.message_id
         )
 
-    @run_async
-    def _command_surveillance_start(
+    def _async_command_surveillance_start(
             self,
             update: Update,
             context: CallbackContext
