@@ -5,5 +5,5 @@ python:
   - "3.8"
 cache: pip
 install:
-  - pip install tox-travis
+  - pip install --upgrade tox-travis virtualenv
 script: tox
