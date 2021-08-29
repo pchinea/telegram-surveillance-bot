@@ -5,7 +5,7 @@ setuptools.setup(
     name="surveillance_bot",
     version="1.0",
     packages=['surveillance_bot'],
-    install_requires=["python-telegram-bot>=12", "opencv-python>=4"],
+    install_requires=["python-telegram-bot>=13,<14", "opencv-python>=4,<5"],
     python_requires='>=3.6, <3.9',
     entry_points={
         'console_scripts': [
