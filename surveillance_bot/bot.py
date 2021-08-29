@@ -18,7 +18,7 @@ from telegram.ext import (
     Dispatcher,
     PicklePersistence,
     Updater
-)
+)  # type: ignore
 
 from surveillance_bot.bot_config import BotConfig
 from surveillance_bot.camera import (
@@ -178,7 +178,7 @@ class Bot:
             context.error
         )
         context.bot.send_message(
-            chat_id=update.effective_chat.id,
+            chat_id=update.effective_chat.id,  # type: ignore
             text="*ERROR|!* Unknown bot internal error, see server logs "
                  "for more information|.".replace('|', '\\'),
             parse_mode=ParseMode.MARKDOWN_V2
