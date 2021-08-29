@@ -2,8 +2,8 @@
 Surveillance Bot
 ################
 
-.. image:: https://travis-ci.com/pchinea/telegram-surveillance-bot.svg?branch=master
-    :target: https://travis-ci.com/pchinea/telegram-surveillance-bot
+.. image:: https://app.travis-ci.com/pchinea/telegram-surveillance-bot.svg?branch=master
+    :target: https://app.travis-ci.com/pchinea/telegram-surveillance-bot
     :alt: Build status
 
 .. image:: https://codecov.io/gh/pchinea/telegram-surveillance-bot/branch/master/graph/badge.svg
