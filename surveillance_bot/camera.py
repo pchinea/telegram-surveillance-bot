@@ -161,7 +161,7 @@ class Camera:
     def __init__(self, cam_id=0) -> None:
         self._camera = CameraDevice(cam_id)
         self._surveillance_mode = False
-        self._tempdir = TemporaryDirectory()
+        self._tempdir = TemporaryDirectory()  # pylint: disable=R1732
         self._codec = self.get_supported_codec()
         if not self._codec:
             raise CodecNotAvailable
@@ -365,7 +365,8 @@ class Camera:
                         video_writer.write(frame)
                 else:
                     video_writer.release()
-                    yield {'video': open(path, 'rb')}
+                    with open(path, 'rb') as file_handler:
+                        yield {'video': file_handler}
                     status = Camera.STATE_IDLE
 
     def surveillance_stop(self) -> None:
