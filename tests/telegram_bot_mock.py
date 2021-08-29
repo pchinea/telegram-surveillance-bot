@@ -13,6 +13,7 @@ class DispatcherMock(MagicMock):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.commands: Dict[str, Callable] = {}
+        self.threads: List[Thread] = []
 
     def add_handler(self, handler) -> None:
         """
@@ -22,7 +23,27 @@ class DispatcherMock(MagicMock):
             handler: Command handler to store.
         """
         if hasattr(handler, 'command'):
-            self.commands[handler.command[0]] = handler.callback
+            if handler.run_async:
+                self.commands[handler.command[0]] = self.mock_run_async(handler.callback)
+            else:
+                self.commands[handler.command[0]] = handler.callback
+
+    def mock_run_async(self, func):
+        """
+        Decorates a function to execute it into a thread.
+
+        Args:
+            func: Function to be decorated.
+
+        Returns:
+            Decorated function.
+
+        """
+        def wrapped(*args, **kwargs):
+            thread = Thread(target=func, args=args, kwargs=kwargs)
+            self.threads.append(thread)
+            thread.start()
+        return wrapped
 
 
 class TelegramBotMock(MagicMock):
@@ -43,33 +64,6 @@ def mock_telegram_updater(mocker: pytest_mock.mocker) -> TelegramBotMock:
         A mocked telegram bot instance.
     """
     return mocker.patch('surveillance_bot.bot.Updater', TelegramBotMock)
-
-
-def mock_run_async(mocker: pytest_mock.mocker) -> List[Thread]:
-    """
-    Mocks telegram bot run_async decorator.
-
-    The generated function simulates the original behavior executing the
-    decorated function into a thread.
-
-    Args:
-        mocker: Fixture for object mocking.
-
-    Returns:
-        An initially empty list, every time the mocked function is called the
-        created thread is appended into it.
-    """
-    threads: List[Thread] = []
-
-    def run_async(func, *args, **kwargs):
-        nonlocal threads
-        thread = Thread(target=func, args=args, kwargs=kwargs)
-        threads.append(thread)
-        thread.start()
-
-    dispatcher = mocker.patch('telegram.ext.dispatcher.Dispatcher')
-    dispatcher.get_instance().run_async = run_async
-    return threads
 
 
 def get_mocked_update_object() -> MagicMock:

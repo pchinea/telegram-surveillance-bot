@@ -16,7 +16,6 @@ from telegram_bot_mock import (
     get_kwargs_grabber,
     get_mocked_context_object,
     get_mocked_update_object,
-    mock_run_async,
     mock_telegram_updater
 )
 
@@ -319,7 +318,6 @@ def test_surveillance_start_command(mocker: pytest_mock.mocker) -> None:
     """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker)
-    threads = mock_run_async(mocker)
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
     bot.camera.start()
     sleep(0.2)  # Wait for fps calculation
@@ -341,7 +339,7 @@ def test_surveillance_start_command(mocker: pytest_mock.mocker) -> None:
         pass
     bot.updater.dispatcher.commands['surveillance_stop'](update, context)
 
-    threads[0].join()
+    bot.updater.dispatcher.threads[0].join()
     assert 'not active' in parameters[0]['text']
     assert 'started' in parameters[1]['text']
     assert 'is active' in parameters[2]['text']
@@ -364,7 +362,6 @@ def test_surveillance_errors(mocker: pytest_mock.mocker) -> None:
     """
     mock_telegram_updater(mocker)
     mock_video_capture(mocker)
-    threads = mock_run_async(mocker)
     bot = Bot(token='FAKE_TOKEN', username='FAKE_USER')
     bot.camera.start()
     sleep(0.1)  # Wait for fps calculation
@@ -384,7 +381,7 @@ def test_surveillance_errors(mocker: pytest_mock.mocker) -> None:
         pass
     bot.updater.dispatcher.commands['surveillance_stop'](update, context)
 
-    threads[0].join()
+    bot.updater.dispatcher.threads[0].join()
     assert 'not started' in parameters[0]['text']
     assert 'already started' in parameters[2]['text']
     bot.camera.stop()
