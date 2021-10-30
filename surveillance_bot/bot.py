@@ -222,7 +222,7 @@ class Bot:
                 '/get_video'
             ],
             [
-                '/surveillance_{}'.format('stop' if active else 'start')
+                f"/surveillance_{'stop' if active else 'start'}"
             ]
         ]
         return ReplyKeyboardMarkup(
