@@ -1,4 +1,5 @@
 [MASTER]
-extension-pkg-whitelist=cv2
+extension-pkg-allow-list=cv2
 good-names=i, j, k, ex, Run, _, x, y
 no-docstring-rgx=__.*__
+disable=E1101  # https://github.com/opencv/opencv-python/issues/570
