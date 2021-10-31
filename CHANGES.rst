@@ -10,6 +10,7 @@ DEV
 * Fixes breaking changes with python-telegram-bot.
 * Speeds up docker image creation.
 * Adds python 3.9 support.
+* Uses opencv-python-headless package.
 
 1.0 (2020-06-16)
 ----------------

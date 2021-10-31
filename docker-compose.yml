@@ -7,7 +7,7 @@ services:
     devices:
       - /dev/video0:/dev/video0
     volumes:
-      - /etc/localtime:/etc/localtime
+      - /etc/localtime:/etc/localtime:ro
     environment:
       # Mandatory variables
       - BOT_API_TOKEN
