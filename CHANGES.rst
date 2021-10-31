@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-DEV
----
+1.1 (2021-10-31)
+----------------
 
 * Improves code style.
 * Forces virtualenv upgrading in travis environment.

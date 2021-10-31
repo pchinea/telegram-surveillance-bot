@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name="surveillance_bot",
-    version="1.0",
+    version="1.1",
     packages=['surveillance_bot'],
     install_requires=["python-telegram-bot>=13,<14", "opencv-python-headless>=4,<5"],
     python_requires='>=3.6, <3.10',
