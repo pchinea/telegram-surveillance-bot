@@ -43,7 +43,7 @@ Features
 
 Requirements
 ************
-- python (versions: 3.6, 3.7, 3.8 and 3.9)
+- python (supported versions: 3.6, 3.7, 3.8 and 3.9)
 - OpenCV
 - python-telegram-bot
 
