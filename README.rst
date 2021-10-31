@@ -6,7 +6,7 @@ Surveillance Bot
     :target: https://app.travis-ci.com/pchinea/telegram-surveillance-bot
     :alt: Build status
 
-.. image:: https://codecov.io/gh/pchinea/telegram-surveillance-bot/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/pchinea/telegram-surveillance-bot/branch/master/graph/badge.svg?token=z96qOgGyMq
     :target: https://codecov.io/gh/pchinea/telegram-surveillance-bot
     :alt: Coverage
 

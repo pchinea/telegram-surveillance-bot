@@ -22,3 +22,6 @@ dist
 
 # Pyenv
 .python-version
+
+# Codecov binary
+codecov
