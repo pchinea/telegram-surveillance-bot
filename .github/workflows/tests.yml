@@ -1,0 +1,47 @@
+name: tests
+
+on:
+  push:
+    tags-ignore:
+      - 'v*'
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.6', '3.7', '3.8', '3.9']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
+
+      - name: Install dependencies
+        run: pip install -r dev-requirements.txt
+
+      - name: Code analysis
+        run: pylint surveillance_bot
+
+      - name: Type checking
+        run: mypy surveillance_bot
+
+      - name: Run tests
+        run: PYTHONPATH=$PWD pytest --cov=surveillance_bot --cov-report xml
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v2
