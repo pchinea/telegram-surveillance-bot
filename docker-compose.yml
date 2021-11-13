@@ -3,7 +3,7 @@ version: '3'
 services:
   telegram-surveillance-bot:
     container_name: telegram-surveillance-bot
-    image: telegram-surveillance-bot
+    image: pchinea/telegram-surveillance-bot:latest
     devices:
       - /dev/video0:/dev/video0
     volumes:

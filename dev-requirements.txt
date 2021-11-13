@@ -7,4 +7,3 @@ pytest-cov
 pytest-mock
 sphinx
 sphinx-rtd-theme
-tox
