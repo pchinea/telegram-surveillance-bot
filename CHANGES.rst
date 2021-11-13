@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+1.1.1 (2021-11-13)
+------------------
+
+* Uses public docker image in docker compose file.
+* Adopts semantic versioning.
+
 1.1 (2021-10-31)
 ----------------
 

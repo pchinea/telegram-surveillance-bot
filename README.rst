@@ -2,7 +2,7 @@
 Surveillance Bot
 ################
 
-.. image:: https://github.com/pchinea/telegram-surveillance-bot/actions/workflows/tests.yml/badge.svg
+.. image:: https://github.com/pchinea/telegram-surveillance-bot/actions/workflows/tests.yml/badge.svg?branch=master
     :target: https://github.com/pchinea/telegram-surveillance-bot/actions/workflows/tests.yml
     :alt: Build status
 
