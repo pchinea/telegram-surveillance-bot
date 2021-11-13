@@ -9,7 +9,6 @@ __pycache__
 .coverage.*
 .mypy_cache
 .pytest_cache
-.tox
 coverage.xml
 
 # Documentation
@@ -19,9 +18,3 @@ docs/_build
 build
 dist
 *.egg-info/
-
-# Pyenv
-.python-version
-
-# Codecov binary
-codecov
